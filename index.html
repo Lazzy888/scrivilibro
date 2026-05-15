@@ -27,6 +27,7 @@
     </div>
     <div class="topbar-right">
         <span id="statusDot" class="status-dot" title="Stato connessione"></span>
+        <button id="openBooksTopBtn" class="icon-btn" aria-label="I miei libri" title="I miei libri">📁</button>
         <button id="aiSettingsBtn" class="icon-btn ai-hdr-btn" aria-label="Strumenti AI" title="Strumenti AI">🤖</button>
         <button id="helpBtn" class="icon-btn help-btn" aria-label="Istruzioni">?</button>
     </div>
@@ -79,6 +80,9 @@
                Crea nuovi capitoli con il tasto blu in fondo, rinominali con ✏️ o eliminali con ✕.
                Il capitolo attivo è evidenziato in blu. Cambiare o eliminare un capitolo
                interrompe automaticamente qualsiasi registrazione in corso.</p>
+            <p>Il <strong>Titolo capitolo</strong> in cima alla pagina principale può essere
+               modificato direttamente: il nome si aggiorna in tempo reale anche nel pannello
+               dei capitoli e viene salvato automaticamente.</p>
         </section>
 
         <section class="help-section">
@@ -150,9 +154,10 @@
             </p>
             <p style="font-size:0.88rem;color:#374151;line-height:1.5;margin:0 0 6px;">
                 Tocca <strong>🤖</strong> → scegli una categoria → scegli l'opzione →
-                l'AI elabora il testo e mostra un'<strong>anteprima</strong>:
-                tocca <em>✓ Applica</em> per sostituire il testo, o <em>✕ Annulla</em>
-                per scartare senza modificare nulla.
+                attendi lo spinner di elaborazione (compare nella stessa schermata) →
+                l'AI mostra un'<strong>anteprima</strong> in basso nella pagina:
+                tocca <em>✓ Applica</em> per sostituire il testo nel capitolo,
+                o <em>✕ Annulla</em> per scartare senza modificare nulla.
             </p>
             <ul style="font-size:0.85rem;line-height:1.7;margin:4px 0 0 16px;color:#374151">
                 <li><strong>✍️ Riscrittura</strong> — grammatica, punteggiatura, ripetizioni</li>
@@ -172,10 +177,30 @@
         </section>
 
         <section class="help-section">
+            <h3>📁 I miei libri</h3>
+            <p>Gestisci più libri indipendenti. Puoi aprire il pannello <strong>I miei libri</strong>
+               in due modi:</p>
+            <ul style="font-size:0.88rem;line-height:1.8;margin:4px 0 0 16px;color:#374151">
+                <li>Tocca <strong>📁</strong> nella barra in alto a destra</li>
+                <li>Oppure tocca <strong>☰</strong> → poi <strong>📁</strong> nell'intestazione del pannello capitoli</li>
+            </ul>
+            <p style="margin-top:8px">Nel pannello:</p>
+            <ul style="font-size:0.88rem;line-height:1.8;margin:4px 0 0 16px;color:#374151">
+                <li><strong>💾 Salva</strong> — digita un nome e salva una copia del libro corrente
+                    (tutti i capitoli e il loro contenuto)</li>
+                <li><strong>📂 Carica</strong> — sostituisce il libro corrente con quello salvato
+                    (dopo conferma)</li>
+                <li><strong>🗑</strong> — elimina la copia salvata (dopo conferma)</li>
+            </ul>
+            <p style="font-size:0.8rem;color:#6b7280;margin-top:6px">
+                ℹ️ I libri restano solo su questo dispositivo (localStorage).</p>
+        </section>
+
+        <section class="help-section">
             <h3>💾 Salva</h3>
-            <p>Il testo è salvato automaticamente. Il tasto <strong>Salva</strong> forza un
-               salvataggio esplicito. I dati restano <em>solo su questo dispositivo</em>
-               (localStorage) e non escono mai dal telefono.</p>
+            <p>Il testo è salvato automaticamente a ogni modifica. Il tasto <strong>Salva</strong>
+               nella pagina principale forza un salvataggio esplicito. I dati restano
+               <em>solo su questo dispositivo</em> (localStorage) e non escono mai dal telefono.</p>
         </section>
 
         <section class="help-section">
@@ -250,16 +275,18 @@
 
 <!-- ══ AI PREVIEW BOTTOM SHEET (fixed, sempre visibile) ══ -->
 <div id="aiPreviewSheet" class="ai-preview-sheet hidden">
+    <!-- zona scrollabile: intestazione + textarea -->
     <div class="ai-preview-sheet-inner">
         <div class="ai-preview-sheet-header">
             <span class="ai-preview-label">📄 Anteprima risultato AI</span>
             <button id="aiSheetCloseBtn" class="icon-btn" style="color:#15803d" aria-label="Chiudi">✕</button>
         </div>
         <textarea id="aiPreviewText" class="ai-preview-text"></textarea>
-        <div class="ai-preview-actions">
-            <button id="aiCancelBtn" class="btn secondary half">✕ Annulla</button>
-            <button id="aiApplyBtn"  class="btn primary   half">✓ Applica</button>
-        </div>
+    </div>
+    <!-- bottoni FUORI dalla zona scrollabile: sempre visibili -->
+    <div class="ai-preview-actions">
+        <button id="aiCancelBtn" class="btn secondary half">✕ Annulla</button>
+        <button id="aiApplyBtn"  class="btn primary   half">✓ Applica</button>
     </div>
 </div>
 

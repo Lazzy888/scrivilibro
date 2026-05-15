@@ -727,6 +727,9 @@ body {
 }
 
 /* ══ PANNELLO LIBRI ══ */
+/* L'overlay del pannello libri deve coprire anche il pannello capitoli (z-index 20) */
+#booksOverlay { z-index: 29; }
+
 .books-panel {
     position: fixed;
     inset: 0;
@@ -842,9 +845,10 @@ body {
     border-top: 3px solid #16a34a;
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -8px 30px rgba(0,0,0,0.18);
-    max-height: 60dvh;
+    max-height: 65dvh;
     display: flex;
     flex-direction: column;
+    overflow: visible;
     animation: sheet-up .25s ease-out;
 }
 @keyframes sheet-up {
@@ -854,10 +858,14 @@ body {
 .ai-preview-sheet-inner {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    padding: 12px 14px 14px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px 14px env(safe-area-inset-bottom, 14px);
     gap: 10px;
     flex: 1;
+    min-height: 0;
+    border-radius: 16px 16px 0 0;
 }
 .ai-preview-sheet-header {
     display: flex;
@@ -870,11 +878,11 @@ body {
     font-weight: 700;
     color: #15803d;
 }
-.ai-preview-text {
-    flex: 1;
+/* textarea anteprima dentro il bottom sheet */
+.ai-preview-sheet .ai-preview-text {
     width: 100%;
     min-height: 80px;
-    max-height: 200px;
+    max-height: 160px;
     padding: 10px;
     border: 1.5px solid #bbf7d0;
     border-radius: 8px;
@@ -886,4 +894,15 @@ body {
     font-family: var(--font);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    flex: 1;
+    min-height: 0;
+}
+/* Bottoni Applica / Annulla: figli diretti del sheet, sempre visibili */
+.ai-preview-sheet > .ai-preview-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    padding: 10px 14px env(safe-area-inset-bottom, 12px);
+    border-top: 1px solid #d1fae5;
+    background: var(--white);
 }

@@ -72,7 +72,8 @@ const aiCancelBtn    = document.getElementById("aiCancelBtn");
 const aiApplyBtn     = document.getElementById("aiApplyBtn");
 const aiSheetCloseBtn = document.getElementById("aiSheetCloseBtn");
 // Books panel
-const openBooksBtn   = document.getElementById("openBooksBtn");
+const openBooksBtn    = document.getElementById("openBooksBtn");
+const openBooksTopBtn = document.getElementById("openBooksTopBtn"); // bottone topbar
 const booksPanel     = document.getElementById("booksPanel");
 const booksOverlay   = document.getElementById("booksOverlay");
 const closeBooksBtn  = document.getElementById("closeBooksBtn");
@@ -91,7 +92,7 @@ const chaptersOverlay  = document.getElementById("chaptersOverlay");
 // MENU PANNELLO CAPITOLI
 // ==============================
 
-function openPanel()  { chaptersPanel.classList.remove("hidden"); chaptersOverlay.classList.remove("hidden"); }
+function openPanel()  { renderChaptersList(); chaptersPanel.classList.remove("hidden"); chaptersOverlay.classList.remove("hidden"); }
 function closePanel() { chaptersPanel.classList.add("hidden");    chaptersOverlay.classList.add("hidden"); }
 
 menuBtn.addEventListener("click", openPanel);
@@ -726,7 +727,7 @@ function selectAiCategory(op, cardEl) {
     });
 
     aiSubPanel.classList.remove("hidden");
-    aiPreview.classList.add("hidden");
+    aiPreviewSheet.classList.add("hidden");
     aiSpinner.classList.add("hidden");
     // Scrolla al sub-panel
     aiSubPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -745,7 +746,9 @@ async function runAiOperation(systemPrompt, opLabel) {
     if (!navigator.onLine) { setInfo("Offline: impossibile contattare l'AI."); return; }
 
     aiSpinner.classList.remove("hidden");
-    aiPreview.classList.add("hidden");
+    aiPreviewSheet.classList.add("hidden");
+    // Scorre verso lo spinner dopo un tick, garantendo visibilità completa
+    setTimeout(() => aiSpinner.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
 
     try {
         const res = await fetch(GROQ_ENDPOINT, {
@@ -1005,6 +1008,11 @@ function saveBook() {
     const name = bookNameInput.value.trim();
     if (!name) { setInfo("Inserisci un nome per il libro."); return; }
 
+    // Sincronizza il capitolo corrente prima di fare lo snapshot
+    const cur = getCurrentChapter();
+    if (cur) { cur.content = chapterContentEl.value; cur.title = chapterTitleEl.value; }
+    saveToStorage();
+
     const books = loadBooks();
     const now   = new Date().toLocaleString("it-IT", {
         day:"2-digit", month:"2-digit", year:"numeric",
@@ -1050,7 +1058,8 @@ function deleteBook(id) {
     setInfo("Libro eliminato.");
 }
 
-openBooksBtn.addEventListener("click",  openBooksPanel);
+openBooksBtn.addEventListener("click",    openBooksPanel);
+if (openBooksTopBtn) openBooksTopBtn.addEventListener("click", openBooksPanel);
 closeBooksBtn.addEventListener("click", closeBooksPanel);
 booksOverlay.addEventListener("click",  closeBooksPanel);
 bookSaveBtn.addEventListener("click",   saveBook);
