@@ -328,17 +328,6 @@
     <span id="infoMessage"></span>
 </footer>
 
-<script src="app.js"></script>
-<script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(r => console.log('SW ok:', r.scope))
-            .catch(e => console.warn('SW:', e));
-    });
-}
-</script>
-
 <!-- ══ PANNELLO EDITOR FRASI ══ -->
 <div id="editorOverlay" class="overlay hidden"></div>
 <div id="editorPanel" class="editor-panel hidden" role="dialog" aria-modal="true">
@@ -353,6 +342,18 @@ if ('serviceWorker' in navigator) {
         <button id="editorDeleteBtn" class="btn danger"    disabled>🗑 Elimina selezionate</button>
     </div>
 </div>
+
+
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(r => console.log('SW ok:', r.scope))
+            .catch(e => console.warn('SW:', e));
+    });
+}
+</script>
 
 </body>
 </html>
