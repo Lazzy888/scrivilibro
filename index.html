@@ -270,23 +270,19 @@
             <p>Elaborazione in corso…</p>
         </div>
 
-    </div>
-</div>
-
-<!-- ══ AI PREVIEW BOTTOM SHEET (fixed, sempre visibile) ══ -->
-<div id="aiPreviewSheet" class="ai-preview-sheet hidden">
-    <!-- zona scrollabile: intestazione + textarea -->
-    <div class="ai-preview-sheet-inner">
-        <div class="ai-preview-sheet-header">
-            <span class="ai-preview-label">📄 Anteprima risultato AI</span>
-            <button id="aiSheetCloseBtn" class="icon-btn" style="color:#15803d" aria-label="Chiudi">✕</button>
+        <!-- Anteprima risultato AI (dentro il pannello, sempre visibile) -->
+        <div id="aiPreviewSheet" class="ai-result-box hidden">
+            <div class="ai-result-header">
+                <span class="ai-result-label">📄 Anteprima risultato</span>
+                <button id="aiSheetCloseBtn" class="icon-btn" style="color:#15803d;font-size:1rem" aria-label="Chiudi anteprima">✕</button>
+            </div>
+            <textarea id="aiPreviewText" class="ai-result-text"></textarea>
+            <div class="ai-result-actions">
+                <button id="aiCancelBtn" class="btn secondary half">✕ Annulla</button>
+                <button id="aiApplyBtn"  class="btn primary   half">✓ Applica</button>
+            </div>
         </div>
-        <textarea id="aiPreviewText" class="ai-preview-text"></textarea>
-    </div>
-    <!-- bottoni FUORI dalla zona scrollabile: sempre visibili -->
-    <div class="ai-preview-actions">
-        <button id="aiCancelBtn" class="btn secondary half">✕ Annulla</button>
-        <button id="aiApplyBtn"  class="btn primary   half">✓ Applica</button>
+
     </div>
 </div>
 

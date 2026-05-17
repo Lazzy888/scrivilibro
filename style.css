@@ -836,73 +836,51 @@ body {
     gap: 6px;
 }
 
-/* ══ AI PREVIEW BOTTOM SHEET ══ */
-.ai-preview-sheet {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    z-index: 35;
-    background: var(--white);
-    border-top: 3px solid #16a34a;
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -8px 30px rgba(0,0,0,0.18);
-    max-height: 65dvh;
+/* ══ AI RESULT BOX (dentro il pannello AI) ══ */
+.ai-result-box {
+    margin: 0 14px 14px;
+    background: #f0fdf4;
+    border: 2px solid #16a34a;
+    border-radius: var(--radius);
     display: flex;
     flex-direction: column;
-    overflow: visible;
-    animation: sheet-up .25s ease-out;
-}
-@keyframes sheet-up {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
-}
-.ai-preview-sheet-inner {
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    padding: 12px 14px env(safe-area-inset-bottom, 14px);
     gap: 10px;
-    flex: 1;
-    min-height: 0;
-    border-radius: 16px 16px 0 0;
+    padding: 12px;
+    flex-shrink: 0;
+    animation: fade-in .2s ease-out;
 }
-.ai-preview-sheet-header {
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.ai-result-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-shrink: 0;
 }
-.ai-preview-label {
+.ai-result-label {
     font-size: 0.88rem;
     font-weight: 700;
     color: #15803d;
 }
-/* textarea anteprima dentro il bottom sheet */
-.ai-preview-sheet .ai-preview-text {
+.ai-result-text {
     width: 100%;
-    min-height: 80px;
-    max-height: 160px;
+    min-height: 120px;
+    max-height: 220px;
     padding: 10px;
     border: 1.5px solid #bbf7d0;
     border-radius: 8px;
     font-size: 0.88rem;
     line-height: 1.5;
-    resize: none;
-    background: #f0fdf4;
+    resize: vertical;
+    background: var(--white);
     color: var(--text);
     font-family: var(--font);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    flex: 1;
-    min-height: 0;
+    box-sizing: border-box;
 }
-/* Bottoni Applica / Annulla: figli diretti del sheet, sempre visibili */
-.ai-preview-sheet > .ai-preview-actions {
+.ai-result-actions {
     display: flex;
     gap: 8px;
-    flex-shrink: 0;
-    padding: 10px 14px env(safe-area-inset-bottom, 12px);
-    border-top: 1px solid #d1fae5;
-    background: var(--white);
 }

@@ -678,9 +678,10 @@ function openAiPanel() {
 function closeAiPanel() {
     aiPanel.classList.add("hidden");
     aiOverlay.classList.add("hidden");
-    // Resetta stato interno: spinner, subpanel, selezioni
+    // Resetta stato interno
     aiSubPanel.classList.add("hidden");
     aiSpinner.classList.add("hidden");
+    aiPreviewSheet.classList.add("hidden");
     document.querySelectorAll(".ai-cat-card.active").forEach(el => el.classList.remove("active"));
 }
 
@@ -784,10 +785,9 @@ async function runAiOperation(systemPrompt, opLabel) {
 
         aiSpinner.classList.add("hidden");
         aiPreviewText.value = result;
-        // Chiudi il pannello AI prima di mostrare lo sheet di anteprima
-        closeAiPanel();
         aiPreviewSheet.classList.remove("hidden");
-        setInfo("✅ " + opLabel + " completata. Controlla l'anteprima in basso.");
+        // Scorre verso il box risultato dentro il pannello AI
+        setTimeout(() => aiPreviewSheet.scrollIntoView({ behavior: "smooth", block: "nearest" }), 60);
 
     } catch (err) {
         aiSpinner.classList.add("hidden");
@@ -806,7 +806,7 @@ function applyAiResult() {
     chapterContentEl.value = ch.content;
     saveToStorage();
     aiPreviewSheet.classList.add("hidden");
-    closeAiPanel();   // assicura che il pannello AI sia chiuso
+    closeAiPanel();
     setInfo("✅ Testo AI applicato al capitolo.");
 }
 
@@ -837,11 +837,11 @@ aiApplyBtn.addEventListener("click",  applyAiResult);
 aiCancelBtn.addEventListener("click", () => {
     aiPreviewSheet.classList.add("hidden");
     closeAiPanel();
-    setInfo("Operazione AI annullata.");
+    setInfo("Operazione annullata.");
 });
 aiSheetCloseBtn.addEventListener("click", () => {
     aiPreviewSheet.classList.add("hidden");
-    closeAiPanel();
+    // rimane nel pannello AI per scegliere un'altra operazione
 });
 
 // ==============================
