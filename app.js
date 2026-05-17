@@ -533,7 +533,7 @@ async function copyToClipboard() {
 // AI ENGINE — Groq + Llama 3
 // ==============================
 
-const GROQ_MODEL    = "llama3-8b-8192";
+const GROQ_MODEL    = "llama-3.1-8b-instant";
 const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 const AI_KEY_STORE  = "scrivilibro_groq_key";
 
