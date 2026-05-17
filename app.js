@@ -49,6 +49,27 @@ const editorList       = document.getElementById("editorList");
 const editorDeleteBtn  = document.getElementById("editorDeleteBtn");
 const editorUndoBtn    = document.getElementById("editorUndoBtn");
 const closeEditorBtn   = document.getElementById("closeEditorBtn");
+// Editor — schede
+const edTabs           = document.querySelectorAll(".ed-tab");
+const edTabSentences   = document.getElementById("edTabSentences");
+const edTabDirect      = document.getElementById("edTabDirect");
+const edTabSearch      = document.getElementById("edTabSearch");
+// Editor — testo diretto
+const edDirectText     = document.getElementById("edDirectText");
+const edDirectApplyBtn = document.getElementById("edDirectApplyBtn");
+const edDirectCancelBtn= document.getElementById("edDirectCancelBtn");
+// Editor — cerca & sostituisci
+const edFindInput      = document.getElementById("edFindInput");
+const edReplaceInput   = document.getElementById("edReplaceInput");
+const edCaseSensitive  = document.getElementById("edCaseSensitive");
+const edReplaceAllBtn  = document.getElementById("edReplaceAllBtn");
+const edSearchInfo     = document.getElementById("edSearchInfo");
+const edSearchPreview  = document.getElementById("edSearchPreview");
+const edPreviewLabel   = document.getElementById("edPreviewLabel");
+const edReplaceActions = document.getElementById("edReplaceActions");
+const edReplaceConfirmBtn = document.getElementById("edReplaceConfirmBtn");
+const edReplaceCancelBtn  = document.getElementById("edReplaceCancelBtn");
+const edWordCount      = document.getElementById("edWordCount");
 
 // AI panel
 const aiSettingsBtn  = document.getElementById("aiSettingsBtn");
@@ -376,129 +397,372 @@ function toggleRecording() {
 // EDITOR AVANZATO — selezione frasi
 // ==============================
 
-let editorHistory = [];   // stack undo (max 20 snapshot)
+// ══════════════════════════════
+// EDITOR TESTO (3 schede)
+// ══════════════════════════════
 
+let editorHistory  = [];
+let editorSentences = [];
+let editorOriginal  = "";
+let edCurrentTab    = "sentences";
+let edReplacePreviewText = ""; // testo dopo sostituzione (da confermare)
+
+// ── Undo stack ──────────────────
 function pushUndo(text) {
     editorHistory.push(text);
     if (editorHistory.length > 20) editorHistory.shift();
 }
 
-function openEditor() {
-    const ch = getCurrentChapter();
-    if (!ch || !ch.content.trim()) { setInfo("Nessun testo da modificare."); return; }
-
-    // Divide in frasi: punti, !, ?, a capo
-    const raw = ch.content;
-    const sentences = splitIntoSentences(raw);
-
-    renderEditorPanel(sentences, raw);
-    editorPanel.classList.remove("hidden");
-    editorOverlay.classList.remove("hidden");
+// ── Contatore parole ────────────
+function updateWordCount(text) {
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const chars = text.length;
+    edWordCount.textContent = `${words} par. · ${chars} car.`;
 }
 
+// ── Split frasi ─────────────────
 function splitIntoSentences(text) {
-    // Divide per punteggiatura forte o doppio a capo, preservando il delimitatore
     const parts = [];
     const re = /[^.!?\n]+[.!?]*\n*|[^.!?\n]*\n+/g;
     let m;
     while ((m = re.exec(text)) !== null) {
-        const s = m[0];
-        if (s.trim()) parts.push(s);
+        if (m[0].trim()) parts.push(m[0]);
     }
     return parts.length ? parts : [text];
 }
 
-function renderEditorPanel(sentences, originalText) {
-    editorList.innerHTML = "";
-    let selectedCount = 0;
-
-    sentences.forEach((sentence, idx) => {
-        const li = document.createElement("li");
-        li.className  = "ed-item";
-        li.dataset.idx = idx;
-        li.dataset.selected = "0";
-
-        const cb = document.createElement("span");
-        cb.className   = "ed-check";
-        cb.textContent = "○";
-
-        const txt = document.createElement("span");
-        txt.className   = "ed-text";
-        txt.textContent = sentence.trim();
-
-        li.appendChild(cb);
-        li.appendChild(txt);
-
-        li.addEventListener("click", () => {
-            const sel = li.dataset.selected === "1";
-            li.dataset.selected = sel ? "0" : "1";
-            li.classList.toggle("selected", !sel);
-            cb.textContent = sel ? "○" : "●";
-            selectedCount += sel ? -1 : 1;
-            editorDeleteBtn.textContent = selectedCount > 0
-                ? `🗑 Elimina selezionate (${selectedCount})`
-                : "🗑 Elimina selezionate";
-            editorDeleteBtn.disabled = selectedCount === 0;
-        });
-
-        editorList.appendChild(li);
-    });
-
-    editorDeleteBtn.disabled  = true;
-    editorDeleteBtn.textContent = "🗑 Elimina selezionate";
-    editorUndoBtn.disabled    = editorHistory.length === 0;
-    editorSentences = sentences;
-    editorOriginal  = originalText;
-}
-
-let editorSentences = [];
-let editorOriginal  = "";
-
-function deleteSelected() {
+// ── Apri editor ─────────────────
+function openEditor() {
     const ch = getCurrentChapter();
-    if (!ch) return;
-
-    const items = [...editorList.querySelectorAll(".ed-item")];
-    const toDelete = new Set(
-        items.filter(li => li.dataset.selected === "1").map(li => +li.dataset.idx)
-    );
-
-    pushUndo(ch.content);
-
-    const kept = editorSentences.filter((_, i) => !toDelete.has(i));
-    const newText = kept.join("").replace(/\n{3,}/g, "\n\n").trim();
-
-    ch.content = newText;
-    chapterContentEl.value = newText;
-    saveToStorage();
-
-    // Ricarica pannello
-    const newSentences = splitIntoSentences(newText);
-    renderEditorPanel(newSentences, newText);
-    editorUndoBtn.disabled = false;
-    setInfo(`✅ Eliminate ${toDelete.size} fras${toDelete.size === 1 ? "e" : "i"}.`);
+    if (!ch || !ch.content.trim()) { setInfo("Nessun testo da modificare."); return; }
+    editorHistory = [];
+    switchEdTab("sentences");
+    renderSentencesTab(ch.content);
+    edDirectText.value = ch.content;
+    updateWordCount(ch.content);
+    resetSearchTab();
+    editorPanel.classList.remove("hidden");
+    editorOverlay.classList.remove("hidden");
 }
 
-function undoEditor() {
-    if (!editorHistory.length) return;
-    const ch = getCurrentChapter();
-    if (!ch) return;
-
-    const prev = editorHistory.pop();
-    ch.content = prev;
-    chapterContentEl.value = prev;
-    saveToStorage();
-
-    const newSentences = splitIntoSentences(prev);
-    renderEditorPanel(newSentences, prev);
-    editorUndoBtn.disabled = editorHistory.length === 0;
-    setInfo("↩️ Modifica annullata.");
-}
-
+// ── Chiudi editor ───────────────
 function closeEditorPanel() {
     editorPanel.classList.add("hidden");
     editorOverlay.classList.add("hidden");
 }
+
+// ── Gestione schede ─────────────
+function switchEdTab(tab) {
+    edCurrentTab = tab;
+    edTabs.forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
+    edTabSentences.classList.toggle("hidden", tab !== "sentences");
+    edTabDirect.classList.toggle("hidden",    tab !== "direct");
+    edTabSearch.classList.toggle("hidden",    tab !== "search");
+
+    // Quando si entra in "Testo", aggiorna la textarea
+    if (tab === "direct") {
+        const ch = getCurrentChapter();
+        if (ch) { edDirectText.value = ch.content; }
+        setTimeout(() => edDirectText.focus(), 80);
+    }
+}
+
+// ══ SCHEDA 1: FRASI ══════════════
+
+function renderSentencesTab(rawText) {
+    const sentences = splitIntoSentences(rawText);
+    editorSentences  = sentences;
+    editorOriginal   = rawText;
+    editorList.innerHTML = "";
+    let selCount = 0;
+
+    sentences.forEach((sentence, idx) => {
+        const li  = document.createElement("li");
+        li.className      = "ed-item";
+        li.dataset.idx    = String(idx);
+        li.dataset.selected = "0";
+
+        // Checkbox
+        const cb  = document.createElement("span");
+        cb.className   = "ed-check";
+        cb.title       = "Seleziona per eliminare";
+        cb.textContent = "○";
+
+        // Testo
+        const txt = document.createElement("span");
+        txt.className   = "ed-text";
+        txt.textContent = sentence.trim();
+        txt.title       = "Tocca per selezionare/deselezionare";
+
+        // Pulsanti destra
+        const btns = document.createElement("div");
+        btns.className = "ed-item-btns";
+
+        const btnUp   = makeEdBtn("↑", "Sposta su",    () => moveSentence(idx, -1));
+        const btnDown = makeEdBtn("↓", "Sposta giù",   () => moveSentence(idx, +1));
+        const btnEdit = makeEdBtn("✏️", "Modifica",    () => startInlineEdit(li, idx));
+        btnEdit.className = "ed-edit-btn";
+        if (idx === 0)                 btnUp.disabled   = true;
+        if (idx === sentences.length-1) btnDown.disabled = true;
+
+        btns.appendChild(btnUp);
+        btns.appendChild(btnDown);
+        btns.appendChild(btnEdit);
+
+        // Toggle selezione (click su check o testo)
+        const toggleSel = () => {
+            const sel = li.dataset.selected === "1";
+            li.dataset.selected = sel ? "0" : "1";
+            li.classList.toggle("selected", !sel);
+            cb.textContent = sel ? "○" : "●";
+            selCount += sel ? -1 : 1;
+            editorDeleteBtn.textContent = selCount > 0 ? `🗑 Elimina (${selCount})` : "🗑 Elimina";
+            editorDeleteBtn.disabled    = selCount === 0;
+        };
+        cb.addEventListener("click",  toggleSel);
+        txt.addEventListener("click", toggleSel);
+
+        li.appendChild(cb);
+        li.appendChild(txt);
+        li.appendChild(btns);
+        editorList.appendChild(li);
+    });
+
+    editorDeleteBtn.disabled    = true;
+    editorDeleteBtn.textContent = "🗑 Elimina";
+    editorUndoBtn.disabled      = editorHistory.length === 0;
+}
+
+function makeEdBtn(label, title, onClick) {
+    const btn = document.createElement("button");
+    btn.className   = "ed-move-btn";
+    btn.textContent = label;
+    btn.title       = title;
+    btn.addEventListener("click", e => { e.stopPropagation(); onClick(); });
+    return btn;
+}
+
+// Sposta frase su/giù
+function moveSentence(idx, dir) {
+    const ch = getCurrentChapter();
+    if (!ch) return;
+    pushUndo(ch.content);
+    const sents = [...editorSentences];
+    const target = idx + dir;
+    if (target < 0 || target >= sents.length) return;
+    [sents[idx], sents[target]] = [sents[target], sents[idx]];
+    const newText = sents.join("").replace(/\n{3,}/g, "\n\n").trim();
+    ch.content = newText;
+    chapterContentEl.value = newText;
+    saveToStorage();
+    updateWordCount(newText);
+    renderSentencesTab(newText);
+    editorUndoBtn.disabled = false;
+    // Scorre verso la frase spostata
+    setTimeout(() => {
+        const items = editorList.querySelectorAll(".ed-item");
+        if (items[target]) items[target].scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }, 50);
+}
+
+// Modifica inline singola frase
+function startInlineEdit(li, idx) {
+    // Chiudi eventuali altri edit aperti
+    document.querySelectorAll(".ed-inline-wrap").forEach(el => el.remove());
+    document.querySelectorAll(".ed-item").forEach(el => el.classList.remove("editing"));
+
+    li.classList.add("editing");
+    const origText = editorSentences[idx].trim();
+
+    const wrap = document.createElement("div");
+    wrap.className = "ed-inline-wrap";
+
+    const ta = document.createElement("textarea");
+    ta.className   = "ed-inline-edit";
+    ta.value       = origText;
+    ta.rows        = Math.max(2, Math.ceil(origText.length / 45));
+
+    const btnRow = document.createElement("div");
+    btnRow.className = "ed-inline-btns";
+
+    const okBtn = document.createElement("button");
+    okBtn.className   = "ed-inline-ok";
+    okBtn.textContent = "✓ Salva";
+
+    const koBtn = document.createElement("button");
+    koBtn.className   = "ed-inline-ko";
+    koBtn.textContent = "✕ Annulla";
+
+    btnRow.appendChild(koBtn);
+    btnRow.appendChild(okBtn);
+    wrap.appendChild(ta);
+    wrap.appendChild(btnRow);
+    li.appendChild(wrap);
+    setTimeout(() => { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 60);
+
+    okBtn.addEventListener("click", () => {
+        const ch = getCurrentChapter();
+        if (!ch) return;
+        pushUndo(ch.content);
+        const newVal = ta.value.trim() ? ta.value : "";
+        const sents  = [...editorSentences];
+        if (newVal) {
+            sents[idx] = newVal + (origText.endsWith(" ") ? " " : "");
+        } else {
+            sents.splice(idx, 1);  // frase vuota = elimina
+        }
+        const newText = sents.join(" ").replace(/\s{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+        ch.content = newText;
+        chapterContentEl.value = newText;
+        saveToStorage();
+        updateWordCount(newText);
+        renderSentencesTab(newText);
+        editorUndoBtn.disabled = false;
+    });
+
+    koBtn.addEventListener("click", () => {
+        wrap.remove();
+        li.classList.remove("editing");
+    });
+}
+
+// Elimina frasi selezionate
+function deleteSelected() {
+    const ch = getCurrentChapter();
+    if (!ch) return;
+    const items    = [...editorList.querySelectorAll(".ed-item")];
+    const toDelete = new Set(
+        items.filter(li => li.dataset.selected === "1").map(li => +li.dataset.idx)
+    );
+    if (!toDelete.size) return;
+    pushUndo(ch.content);
+    const kept    = editorSentences.filter((_, i) => !toDelete.has(i));
+    const newText = kept.join("").replace(/\n{3,}/g, "\n\n").trim();
+    ch.content = newText;
+    chapterContentEl.value = newText;
+    saveToStorage();
+    updateWordCount(newText);
+    renderSentencesTab(newText);
+    editorUndoBtn.disabled = false;
+    setInfo(`✅ Eliminate ${toDelete.size} fras${toDelete.size === 1 ? "e" : "i"}.`);
+}
+
+// Annulla ultima modifica
+function undoEditor() {
+    if (!editorHistory.length) return;
+    const ch = getCurrentChapter();
+    if (!ch) return;
+    const prev = editorHistory.pop();
+    ch.content = prev;
+    chapterContentEl.value = prev;
+    saveToStorage();
+    updateWordCount(prev);
+    renderSentencesTab(prev);
+    edDirectText.value = prev;
+    editorUndoBtn.disabled = editorHistory.length === 0;
+    setInfo("↩️ Modifica annullata.");
+}
+
+// ══ SCHEDA 2: TESTO DIRETTO ══════
+
+edDirectText.addEventListener("input", () => updateWordCount(edDirectText.value));
+
+edDirectApplyBtn.addEventListener("click", () => {
+    const ch = getCurrentChapter();
+    if (!ch) return;
+    pushUndo(ch.content);
+    const newText = edDirectText.value;
+    ch.content = newText;
+    chapterContentEl.value = newText;
+    saveToStorage();
+    updateWordCount(newText);
+    renderSentencesTab(newText);
+    setInfo("✅ Testo aggiornato.");
+    switchEdTab("sentences");
+});
+
+edDirectCancelBtn.addEventListener("click", () => {
+    const ch = getCurrentChapter();
+    if (ch) edDirectText.value = ch.content;
+    switchEdTab("sentences");
+});
+
+// ══ SCHEDA 3: CERCA & SOSTITUISCI ══
+
+function resetSearchTab() {
+    edFindInput.value    = "";
+    edReplaceInput.value = "";
+    edSearchInfo.className      = "ed-search-info hidden";
+    edSearchInfo.textContent    = "";
+    edSearchPreview.innerHTML   = "";
+    edSearchPreview.classList.add("hidden");
+    edPreviewLabel.classList.add("hidden");
+    edReplaceActions.style.display = "none";
+    edReplacePreviewText = "";
+}
+
+edReplaceAllBtn.addEventListener("click", () => {
+    const ch = getCurrentChapter();
+    if (!ch) return;
+    const needle = edFindInput.value;
+    if (!needle) {
+        showSearchInfo("⚠️ Inserisci il testo da cercare.", "err");
+        return;
+    }
+    const flags  = edCaseSensitive.checked ? "g" : "gi";
+    let   re;
+    try { re = new RegExp(escapeRegex(needle), flags); }
+    catch { showSearchInfo("⚠️ Testo non valido.", "err"); return; }
+
+    const count = (ch.content.match(re) || []).length;
+    if (count === 0) {
+        showSearchInfo(`Nessuna corrispondenza trovata per "${needle}".`, "err");
+        edSearchPreview.classList.add("hidden");
+        edPreviewLabel.classList.add("hidden");
+        edReplaceActions.style.display = "none";
+        return;
+    }
+
+    const replacement = edReplaceInput.value;
+    edReplacePreviewText = ch.content.replace(re, replacement);
+
+    // Anteprima con highlight (prima 800 char)
+    const preview = ch.content.slice(0, 800)
+        .replace(re, match => `<mark>${escHtml(match)}</mark>`)
+        .replace(new RegExp(escapeRegex(replacement || ""), "g"),
+            s => s ? `<ins>${escHtml(s)}</ins>` : "");
+
+    showSearchInfo(`✅ ${count} occorrenz${count === 1 ? "a" : "e"} trovata/e. Controlla l'anteprima.`, "ok");
+    edSearchPreview.innerHTML = preview + (ch.content.length > 800 ? "…" : "");
+    edSearchPreview.classList.remove("hidden");
+    edPreviewLabel.classList.remove("hidden");
+    edReplaceActions.style.display = "flex";
+});
+
+edReplaceConfirmBtn.addEventListener("click", () => {
+    const ch = getCurrentChapter();
+    if (!ch || !edReplacePreviewText) return;
+    pushUndo(ch.content);
+    ch.content = edReplacePreviewText;
+    chapterContentEl.value = edReplacePreviewText;
+    saveToStorage();
+    updateWordCount(edReplacePreviewText);
+    renderSentencesTab(edReplacePreviewText);
+    edDirectText.value = edReplacePreviewText;
+    editorUndoBtn.disabled = false;
+    resetSearchTab();
+    setInfo("✅ Sostituzione eseguita.");
+    switchEdTab("sentences");
+});
+
+edReplaceCancelBtn.addEventListener("click", resetSearchTab);
+
+function showSearchInfo(msg, type) {
+    edSearchInfo.textContent = msg;
+    edSearchInfo.className   = `ed-search-info ${type}`;
+}
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+function escHtml(s)     { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
 // ==============================
 // FIX #3 — COPIA IN CLIPBOARD
@@ -971,6 +1235,8 @@ editorDeleteBtn.addEventListener("click", deleteSelected);
 editorUndoBtn.addEventListener("click",   undoEditor);
 closeEditorBtn.addEventListener("click",  closeEditorPanel);
 editorOverlay.addEventListener("click",   closeEditorPanel);
+// Schede editor
+edTabs.forEach(btn => btn.addEventListener("click", () => switchEdTab(btn.dataset.tab)));
 
 saveLocalBtn.addEventListener("click", () => {
     const ch = getCurrentChapter();

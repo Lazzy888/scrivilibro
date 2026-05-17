@@ -331,19 +331,71 @@
     <span id="infoMessage"></span>
 </footer>
 
-<!-- ══ PANNELLO EDITOR FRASI ══ -->
+<!-- ══ PANNELLO EDITOR TESTO ══ -->
 <div id="editorOverlay" class="overlay hidden"></div>
 <div id="editorPanel" class="editor-panel hidden" role="dialog" aria-modal="true">
+
+    <!-- Header -->
     <div class="editor-header">
         <h2>✂️ Modifica testo</h2>
-        <button id="closeEditorBtn" class="icon-btn" aria-label="Chiudi">✕</button>
+        <div style="display:flex;align-items:center;gap:8px">
+            <span id="edWordCount" class="ed-wordcount"></span>
+            <button id="closeEditorBtn" class="icon-btn" aria-label="Chiudi">✕</button>
+        </div>
     </div>
-    <p class="editor-hint">Tocca le frasi da eliminare (si colorano di rosso), poi premi il tasto.</p>
-    <ul id="editorList" class="editor-list"></ul>
-    <div class="editor-actions">
-        <button id="editorUndoBtn"   class="btn secondary" disabled>↩️ Annulla</button>
-        <button id="editorDeleteBtn" class="btn danger"    disabled>🗑 Elimina selezionate</button>
+
+    <!-- Schede -->
+    <div class="ed-tabs" role="tablist">
+        <button class="ed-tab active" data-tab="sentences" role="tab">✂️ Frasi</button>
+        <button class="ed-tab"        data-tab="direct"    role="tab">📝 Testo</button>
+        <button class="ed-tab"        data-tab="search"    role="tab">🔍 Cerca</button>
     </div>
+
+    <!-- ── Scheda 1: Frasi ── -->
+    <div id="edTabSentences" class="ed-tab-pane">
+        <p class="editor-hint">Tocca per selezionare • ↑↓ sposta • ✏️ modifica singola frase</p>
+        <ul id="editorList" class="editor-list"></ul>
+        <div class="editor-actions">
+            <button id="editorUndoBtn"   class="btn secondary" disabled>↩️ Annulla</button>
+            <button id="editorDeleteBtn" class="btn danger"    disabled>🗑 Elimina</button>
+        </div>
+    </div>
+
+    <!-- ── Scheda 2: Testo diretto ── -->
+    <div id="edTabDirect" class="ed-tab-pane hidden">
+        <div class="ed-direct-bar">
+            <span class="editor-hint" style="border:none;padding:0">Modifica il testo liberamente</span>
+        </div>
+        <textarea id="edDirectText" class="ed-direct-textarea"></textarea>
+        <div class="ed-direct-actions">
+            <button id="edDirectCancelBtn" class="btn secondary half">✕ Annulla</button>
+            <button id="edDirectApplyBtn"  class="btn primary   half">✓ Applica</button>
+        </div>
+    </div>
+
+    <!-- ── Scheda 3: Cerca & Sostituisci ── -->
+    <div id="edTabSearch" class="ed-tab-pane hidden">
+        <div class="ed-search-form">
+            <label class="ed-search-label">Cerca</label>
+            <input id="edFindInput"    class="ed-search-input" type="text" placeholder="Parola o frase…" autocomplete="off" />
+            <label class="ed-search-label">Sostituisci con</label>
+            <input id="edReplaceInput" class="ed-search-input" type="text" placeholder="Nuovo testo (vuoto = elimina)" autocomplete="off" />
+            <div class="ed-search-row">
+                <label class="ed-search-check">
+                    <input id="edCaseSensitive" type="checkbox" /> Maiusc./minusc.
+                </label>
+                <button id="edReplaceAllBtn" class="btn primary">Sostituisci tutto</button>
+            </div>
+        </div>
+        <div id="edSearchInfo" class="ed-search-info hidden"></div>
+        <div class="ed-search-preview-label hidden" id="edPreviewLabel">Anteprima modifiche:</div>
+        <div id="edSearchPreview" class="ed-search-preview hidden"></div>
+        <div class="ed-direct-actions" id="edReplaceActions" style="display:none">
+            <button id="edReplaceConfirmBtn" class="btn primary half">✓ Conferma</button>
+            <button id="edReplaceCancelBtn"  class="btn secondary half">✕ Annulla</button>
+        </div>
+    </div>
+
 </div>
 
 
