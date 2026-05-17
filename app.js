@@ -71,6 +71,9 @@ const aiPreviewText  = document.getElementById("aiPreviewText");
 const aiCancelBtn    = document.getElementById("aiCancelBtn");
 const aiApplyBtn     = document.getElementById("aiApplyBtn");
 const aiSheetCloseBtn = document.getElementById("aiSheetCloseBtn");
+const aiErrorBox      = document.getElementById("aiErrorBox");
+const aiErrorMsg      = document.getElementById("aiErrorMsg");
+const aiErrorCloseBtn = document.getElementById("aiErrorCloseBtn");
 // Books panel
 const openBooksBtn    = document.getElementById("openBooksBtn");
 const openBooksTopBtn = document.getElementById("openBooksTopBtn"); // bottone topbar
@@ -678,10 +681,10 @@ function openAiPanel() {
 function closeAiPanel() {
     aiPanel.classList.add("hidden");
     aiOverlay.classList.add("hidden");
-    // Resetta stato interno
     aiSubPanel.classList.add("hidden");
     aiSpinner.classList.add("hidden");
     aiPreviewSheet.classList.add("hidden");
+    hideAiError();
     document.querySelectorAll(".ai-cat-card.active").forEach(el => el.classList.remove("active"));
 }
 
@@ -738,33 +741,54 @@ function selectAiCategory(op, cardEl) {
     aiSubPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
+// ── Helpers errore AI ──
+
+function showAiError(msg) {
+    aiErrorMsg.textContent = msg;
+    aiErrorBox.classList.remove("hidden");
+    aiSpinner.classList.add("hidden");
+    aiPreviewSheet.classList.add("hidden");
+    // Scorre per rendere visibile l'errore
+    setTimeout(() => aiErrorBox.scrollIntoView({ behavior: "smooth", block: "nearest" }), 40);
+}
+
+function hideAiError() {
+    aiErrorBox.classList.add("hidden");
+    aiErrorMsg.textContent = "";
+}
+
 // ── Esegui operazione AI ──
 
 async function runAiOperation(systemPrompt, opLabel) {
     const ch = getCurrentChapter();
     if (!ch || !ch.content.trim()) {
-        setInfo("Nessun testo nel capitolo corrente.");
+        showAiError("⚠️ Nessun testo nel capitolo corrente.");
         return;
     }
     const key = getGroqKey();
-    if (!key) { setInfo("Inserisci prima la chiave API Groq."); return; }
-    if (!navigator.onLine) { setInfo("Offline: impossibile contattare l'AI."); return; }
+    if (!key) { showAiError("⚠️ Inserisci prima la chiave API Groq."); return; }
+    if (!navigator.onLine) { showAiError("⚠️ Sei offline: impossibile contattare l'AI."); return; }
 
-    aiSpinner.classList.remove("hidden");
+    hideAiError();
     aiPreviewSheet.classList.add("hidden");
-    // Scorre verso lo spinner dopo un tick, garantendo visibilità completa
-    setTimeout(() => aiSpinner.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    aiSpinner.classList.remove("hidden");
+    setTimeout(() => aiSpinner.scrollIntoView({ behavior: "smooth", block: "nearest" }), 40);
+
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
     try {
+        console.log("[AI] Invio richiesta a Groq, modello:", GROQ_MODEL);
         const res = await fetch(GROQ_ENDPOINT, {
             method: "POST",
+            signal: controller.signal,
             headers: {
                 "Content-Type":  "application/json",
                 "Authorization": "Bearer " + key
             },
             body: JSON.stringify({
-                model:      GROQ_MODEL,
-                max_tokens: 4096,
+                model:       GROQ_MODEL,
+                max_tokens:  4096,
                 temperature: 0.7,
                 messages: [
                     { role: "system", content: systemPrompt },
@@ -773,26 +797,37 @@ async function runAiOperation(systemPrompt, opLabel) {
             })
         });
 
+        clearTimeout(timeoutId);
+        console.log("[AI] Risposta HTTP:", res.status);
+
         if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err?.error?.message || "HTTP " + res.status);
+            let errMsg = "HTTP " + res.status;
+            try {
+                const errData = await res.json();
+                errMsg = errData?.error?.message || errMsg;
+            } catch (_) {}
+            throw new Error(errMsg);
         }
 
         const data   = await res.json();
-        const result = data.choices?.[0]?.message?.content?.trim() || "";
+        console.log("[AI] Dati ricevuti:", JSON.stringify(data).slice(0, 200));
+        const result = data?.choices?.[0]?.message?.content?.trim() ?? "";
 
-        if (!result) throw new Error("Risposta vuota dall'AI.");
+        if (!result) throw new Error("Risposta vuota dall'AI (choices[0] assente).");
 
         aiSpinner.classList.add("hidden");
         aiPreviewText.value = result;
         aiPreviewSheet.classList.remove("hidden");
-        // Scorre verso il box risultato dentro il pannello AI
         setTimeout(() => aiPreviewSheet.scrollIntoView({ behavior: "smooth", block: "nearest" }), 60);
+        setInfo("✅ " + opLabel + " completata.");
 
     } catch (err) {
-        aiSpinner.classList.add("hidden");
-        setInfo("❌ Errore AI: " + err.message);
-        console.error("Groq error:", err);
+        clearTimeout(timeoutId);
+        const msg = err.name === "AbortError"
+            ? "⏱ Timeout: nessuna risposta entro 30 secondi."
+            : "❌ " + err.message;
+        console.error("[AI] Errore:", err);
+        showAiError(msg);
     }
 }
 
@@ -833,6 +868,7 @@ aiKeyChangeBtn.addEventListener("click", () => {
     aiKeyInput.value = "";
 });
 
+aiErrorCloseBtn.addEventListener("click", hideAiError);
 aiApplyBtn.addEventListener("click",  applyAiResult);
 aiCancelBtn.addEventListener("click", () => {
     aiPreviewSheet.classList.add("hidden");

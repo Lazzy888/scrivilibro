@@ -836,6 +836,23 @@ body {
     gap: 6px;
 }
 
+/* ══ AI ERROR BOX (dentro il pannello AI) ══ */
+.ai-error-box {
+    margin: 0 14px 10px;
+    background: #fef2f2;
+    border: 2px solid #fca5a5;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.88rem;
+    color: #991b1b;
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+.ai-error-box span { flex: 1; }
+
 /* ══ AI RESULT BOX (dentro il pannello AI) ══ */
 .ai-result-box {
     margin: 0 14px 14px;
