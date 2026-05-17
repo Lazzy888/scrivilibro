@@ -290,10 +290,16 @@ function renderCurrentChapter() {
 // Nessun ri-consegna possibile. Il testo viene appeso una sola volta.
 // Se isRecording è ancora true, si avvia subito una nuova istanza pulita.
 
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+// Edge usa SpeechRecognition nativo; Chrome/Android usa webkit prefix
+const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+// Rilevamento browser per diagnostica
+const isEdge    = navigator.userAgent.includes("Edg/");
+const isChrome  = navigator.userAgent.includes("Chrome") && !isEdge;
+const isFirefox = navigator.userAgent.includes("Firefox");
+const srSupported = !!SpeechRecognitionAPI;
 let recognition  = null;
 let isRecording  = false;
-let srRestarting = false;   // blocca doppi avvii simultanei
+let srRestarting = false;
 
 function setRecordingUI(active) {
     isRecording = active;
@@ -310,10 +316,15 @@ function setRecordingUI(active) {
 }
 
 function startSpeechRecognition() {
-    if (!SpeechRecognition) {
-        setInfo("⚠️ Riconoscimento vocale non supportato in questo browser.");
+    if (!srSupported) {
+        const msg = isFirefox
+            ? "⚠️ Firefox non supporta la dettatura. Usa Chrome, Edge o Safari."
+            : "⚠️ Riconoscimento vocale non supportato in questo browser.";
+        setInfo(msg);
         return;
     }
+    // Su Edge richiede HTTPS e permesso microfono
+    if (isEdge) console.log("[SR] Edge detected — usando SpeechRecognition nativo");
     const ch = getCurrentChapter();
     if (!ch) { setInfo("Crea prima un capitolo."); return; }
 
@@ -330,7 +341,7 @@ function _startOneShot() {
 
     // Ogni istanza vive per un solo enunciato (continuous = false).
     // onresult scatta UNA volta con il testo finale → nessuna duplicazione.
-    const rec = new SpeechRecognition();
+    const rec = new SpeechRecognitionAPI();
     rec.lang            = "it-IT";
     rec.continuous      = false;   // ← chiave: un enunciato per istanza
     rec.interimResults  = true;    // solo per il riquadro giallo in tempo reale
@@ -375,8 +386,11 @@ function _startOneShot() {
             if (isRecording) setTimeout(_startOneShot, 80);
             return;
         }
-        if (e.error === "not-allowed") {
-            setInfo("❌ Permesso microfono negato. Abilitalo nelle impostazioni del browser.");
+        if (e.error === "not-allowed" || e.error === "permission-denied") {
+            const edgeHint = isEdge
+                ? " Su Edge: clicca l'icona 🔒 nell'URL → Microfono → Consenti."
+                : " Controlla le impostazioni del browser.";
+            setInfo("❌ Permesso microfono negato." + edgeHint, 8000);
             isRecording = false;
             setRecordingUI(false);
             return;
@@ -1406,18 +1420,32 @@ function applyDesktopLayout() {
     aiPanel.classList.add("rc-hidden");
     aiPanel.classList.remove("hidden");
 
-    // Apri subito l'editor col testo corrente
-    const ch = getCurrentChapter();
-    if (ch && ch.content.trim()) {
-        renderSentencesTab(ch.content);
-        edDirectText.value = ch.content;
-        updateWordCount(ch.content);
-    }
-    resetSearchTab();
-    switchEdTab("sentences");
-
     rcTabEditor.classList.add("rc-active");
     rcTabAi.classList.remove("rc-active");
+
+    // Popola editor con il capitolo corrente (dopo un tick per sicurezza DOM)
+    requestAnimationFrame(() => {
+        const ch = getCurrentChapter();
+        if (ch) {
+            if (ch.content.trim()) {
+                renderSentencesTab(ch.content);
+            } else {
+                editorList.innerHTML = "";
+                updateWordCount("");
+            }
+            edDirectText.value = ch.content;
+            updateWordCount(ch.content);
+        }
+        resetSearchTab();
+        switchEdTab("sentences");
+        // Apri anche il pannello AI in stato iniziale corretto
+        const key = getGroqKey();
+        if (key) showAiMain(key);
+        else {
+            aiKeySetup.classList.remove("hidden");
+            aiMain.classList.add("hidden");
+        }
+    });
 }
 
 function applyMobileLayout() {
@@ -1440,14 +1468,15 @@ function switchRcTab(tab) {
         rcTabEditor.classList.add("rc-active");
         rcTabAi.classList.remove("rc-active");
 
-        // Aggiorna il contenuto editor con il capitolo corrente
-        const ch = getCurrentChapter();
-        if (ch) {
-            renderSentencesTab(ch.content);
-            edDirectText.value = ch.content;
-            updateWordCount(ch.content);
-        }
-        switchEdTab(edCurrentTab);
+        requestAnimationFrame(() => {
+            const ch = getCurrentChapter();
+            if (ch) {
+                renderSentencesTab(ch.content);
+                edDirectText.value = ch.content;
+                updateWordCount(ch.content);
+            }
+            switchEdTab(edCurrentTab || "sentences");
+        });
     } else {
         aiPanel.classList.remove("rc-hidden");
         editorPanel.classList.add("rc-hidden");
@@ -1506,12 +1535,6 @@ const origSwitchChapter = switchChapter;
 function init() {
     loadFromStorage();
 
-    // Attiva layout desktop se già in viewport largo
-    if (desktopMQ.matches) {
-        isDesktop = true;
-        applyDesktopLayout();
-    }
-
     // Assicura che currentChapterId punti a un capitolo esistente
     if (chapters.length === 0) {
         addChapter("Capitolo 1");
@@ -1523,8 +1546,13 @@ function init() {
         renderCurrentChapter();
     }
 
-    // Dot online: navigator.onLine non è affidabile al cold start su Android PWA.
-    // Forziamo due check: immediato + dopo 800ms + probe fetch.
+    // Attiva layout desktop DOPO aver caricato e reso i capitoli
+    if (desktopMQ.matches) {
+        isDesktop = true;
+        applyDesktopLayout();
+    }
+
+    // Dot online
     updateOnlineStatus();
     setTimeout(updateOnlineStatus, 800);
     probeOnlineStatus();
