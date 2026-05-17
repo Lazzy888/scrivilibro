@@ -204,7 +204,6 @@ function selectChapter(id) {
     renderChaptersList();
     renderCurrentChapter();
     closePanel();
-    // Se siamo su desktop, aggiorna l'editor nella colonna destra
     if (isDesktop) {
         const ch2 = getCurrentChapter();
         if (ch2) {
@@ -470,7 +469,7 @@ function openEditor() {
 
 // ── Chiudi editor ───────────────
 function closeEditorPanel() {
-    if (isDesktop) return; // Su desktop il pannello è sempre visibile
+    if (isDesktop) return;
     editorPanel.classList.add("hidden");
     editorOverlay.classList.add("hidden");
 }
@@ -1137,7 +1136,10 @@ function applyAiResult() {
 
 // ── Event listeners AI ──
 
-aiSettingsBtn.addEventListener("click", () => isDesktop ? switchRcTab("ai") : openAiPanel());
+aiSettingsBtn.addEventListener("click", () => {
+    if (isDesktop) switchRcTab("ai");
+    else openAiPanel();
+});
 closeAiBtn.addEventListener("click",    closeAiPanel);
 aiOverlay.addEventListener("click",     closeAiPanel);
 
@@ -1256,7 +1258,10 @@ recordBtn.addEventListener("click",      toggleRecording);
 exportTxtBtn.addEventListener("click",   exportAsTxt);
 exportDocxBtn.addEventListener("click",  exportAsDocx);
 clipboardBtn.addEventListener("click",   copyToClipboard);
-editBtn.addEventListener("click",        () => isDesktop ? switchRcTab("editor") : openEditor());
+editBtn.addEventListener("click", () => {
+    if (isDesktop) switchRcTab("editor");
+    else openEditor();
+});
 editorDeleteBtn.addEventListener("click", deleteSelected);
 editorUndoBtn.addEventListener("click",   undoEditor);
 closeEditorBtn.addEventListener("click",  closeEditorPanel);
@@ -1403,80 +1408,32 @@ bookSaveBtn.addEventListener("click",   saveBook);
 // ==============================
 // LAYOUT DESKTOP / MOBILE
 // ==============================
+// I pannelli #editorPanel e #aiPanel sono staticamente dentro #rightColumn nell'HTML.
+// Su desktop (>=900px) il CSS li mostra inline; su mobile sono nascosti via display:none
+// sul #rightColumn. Su mobile vengono usati come overlay fixed tramite JS.
 
 const rightColumn  = document.getElementById("rightColumn");
 const rcTabEditor  = document.getElementById("rcTabEditor");
 const rcTabAi      = document.getElementById("rcTabAi");
 
-let isDesktop = false;
+const desktopMQ = window.matchMedia("(min-width: 900px)");
+let isDesktop   = desktopMQ.matches;
 
-function applyDesktopLayout() {
-    // Sposta i pannelli nella colonna destra
-    rightColumn.appendChild(editorPanel);
-    rightColumn.appendChild(aiPanel);
-
-    // Mostra editor per default, nascondi AI
-    editorPanel.classList.remove("hidden", "rc-hidden");
-    aiPanel.classList.add("rc-hidden");
-    aiPanel.classList.remove("hidden");
-
-    rcTabEditor.classList.add("rc-active");
-    rcTabAi.classList.remove("rc-active");
-
-    // Popola editor con il capitolo corrente (dopo un tick per sicurezza DOM)
-    requestAnimationFrame(() => {
-        const ch = getCurrentChapter();
-        if (ch) {
-            if (ch.content.trim()) {
-                renderSentencesTab(ch.content);
-            } else {
-                editorList.innerHTML = "";
-                updateWordCount("");
-            }
-            edDirectText.value = ch.content;
-            updateWordCount(ch.content);
-        }
-        resetSearchTab();
-        switchEdTab("sentences");
-        // Apri anche il pannello AI in stato iniziale corretto
-        const key = getGroqKey();
-        if (key) showAiMain(key);
-        else {
-            aiKeySetup.classList.remove("hidden");
-            aiMain.classList.add("hidden");
-        }
-    });
-}
-
-function applyMobileLayout() {
-    // Rimanda i pannelli al body (prima del <script>)
-    const scriptTag = document.querySelector("script[src='app.js']");
-    document.body.insertBefore(editorPanel, scriptTag);
-    document.body.insertBefore(aiPanel, scriptTag);
-
-    // Ripristina come pannelli mobile (hidden)
-    editorPanel.classList.add("hidden");
-    aiPanel.classList.add("hidden");
-    editorPanel.classList.remove("rc-hidden");
-    aiPanel.classList.remove("rc-hidden");
-}
-
+// ── Scheda colonna destra ──────────────────────────────
 function switchRcTab(tab) {
     if (tab === "editor") {
         editorPanel.classList.remove("rc-hidden");
         aiPanel.classList.add("rc-hidden");
         rcTabEditor.classList.add("rc-active");
         rcTabAi.classList.remove("rc-active");
-
-        requestAnimationFrame(() => {
-            const ch = getCurrentChapter();
-            if (ch) {
-                renderSentencesTab(ch.content);
-                edDirectText.value = ch.content;
-                updateWordCount(ch.content);
-            }
-            switchEdTab(edCurrentTab || "sentences");
-        });
+        // Aggiorna contenuto editor col capitolo corrente
+        const ch = getCurrentChapter();
+        if (ch) {
+            renderSentencesTab(ch.content);
+            edDirectText.value = ch.content;
+            updateWordCount(ch.content);
+        }
+        switchEdTab(edCurrentTab || "sentences");
     } else {
         aiPanel.classList.remove("rc-hidden");
         editorPanel.classList.add("rc-hidden");
@@ -1485,45 +1442,52 @@ function switchRcTab(tab) {
     }
 }
 
-// Listener schede colonna destra
-rcTabEditor.addEventListener("click", () => switchRcTab("editor"));
-rcTabAi.addEventListener("click",     () => switchRcTab("ai"));
+// ── Inizializzazione desktop ───────────────────────────
+function initDesktopPanels() {
+    // editorPanel visibile, aiPanel nascosto (rc-hidden già in HTML)
+    editorPanel.classList.remove("rc-hidden");
+    rcTabEditor.classList.add("rc-active");
+    rcTabAi.classList.remove("rc-active");
 
-// Quando l'utente apre l'editor su mobile, su desktop fa switch scheda
-const origOpenEditor = openEditor;
-// Override openEditor per desktop
-function openEditorOrSwitch() {
+    // Popola editor col capitolo corrente
+    const ch = getCurrentChapter();
+    if (ch) {
+        renderSentencesTab(ch.content);
+        edDirectText.value = ch.content;
+        updateWordCount(ch.content);
+    }
+    resetSearchTab();
+    switchEdTab("sentences");
+
+    // Inizializza pannello AI
+    const key = getGroqKey();
+    if (key) showAiMain(key);
+    else {
+        aiKeySetup.classList.remove("hidden");
+        aiMain.classList.add("hidden");
+    }
+}
+
+// ── Listener schede ────────────────────────────────────
+rcTabEditor.addEventListener("click", () => { if (isDesktop) switchRcTab("editor"); });
+rcTabAi.addEventListener("click",     () => { if (isDesktop) switchRcTab("ai"); });
+
+// ── Cambio breakpoint ──────────────────────────────────
+desktopMQ.addEventListener("change", e => {
+    isDesktop = e.matches;
     if (isDesktop) {
-        switchRcTab("editor");
+        // Passaggio a desktop: rimuovi classi mobile dai pannelli
+        editorPanel.classList.remove("hidden");
+        aiPanel.classList.remove("hidden");
+        initDesktopPanels();
     } else {
-        origOpenEditor();
+        // Passaggio a mobile: nascondi i pannelli (overlay gestiti da openEditor/openAiPanel)
+        editorPanel.classList.add("hidden");
+        aiPanel.classList.add("hidden");
+        editorPanel.classList.remove("rc-hidden");
+        aiPanel.classList.remove("rc-hidden");
     }
-}
-
-// Quando l'utente apre il pannello AI su mobile, su desktop fa switch scheda
-const origOpenAiPanel = openAiPanel;
-function openAiOrSwitch() {
-    if (isDesktop) {
-        switchRcTab("ai");
-    } else {
-        origOpenAiPanel();
-    }
-}
-
-// Rileva cambio viewport
-const desktopMQ = window.matchMedia("(min-width: 900px)");
-
-function handleBreakpoint(e) {
-    if (e.matches && !isDesktop) {
-        isDesktop = true;
-        applyDesktopLayout();
-    } else if (!e.matches && isDesktop) {
-        isDesktop = false;
-        applyMobileLayout();
-    }
-}
-
-desktopMQ.addEventListener("change", handleBreakpoint);
+});
 
 // Aggiorna i capitoli nella colonna destra quando si cambia capitolo
 const origSwitchChapter = switchChapter;
@@ -1546,10 +1510,9 @@ function init() {
         renderCurrentChapter();
     }
 
-    // Attiva layout desktop DOPO aver caricato e reso i capitoli
-    if (desktopMQ.matches) {
-        isDesktop = true;
-        applyDesktopLayout();
+    // Inizializza pannelli colonna destra se siamo su desktop
+    if (isDesktop) {
+        initDesktopPanels();
     }
 
     // Dot online

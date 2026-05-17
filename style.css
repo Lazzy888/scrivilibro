@@ -1119,43 +1119,33 @@ body {
    Colonna destra:   Modifica testo + Strumenti AI in-place
 ══════════════════════════════════════════════════════════════ */
 
+/* ── Desktop/Tablet ≥ 900px ── */
 @media (min-width: 900px) {
 
-    /* Il body resta flex-column; #contentSplit prende lo spazio rimanente */
     #contentSplit {
         display: flex;
         flex: 1;
         overflow: hidden;
-        gap: 0;
     }
 
-    /* ── Colonna sinistra ── */
+    /* Colonna sinistra */
     #leftColumn {
         display: flex;
         flex-direction: column;
         width: 46%;
-        min-width: 320px;
+        min-width: 300px;
         max-width: 560px;
         border-right: 2px solid var(--border);
         overflow: hidden;
         flex-shrink: 0;
     }
+    #leftColumn .container { flex: 1; overflow-y: auto; }
+    #leftColumn .footer    { flex-shrink: 0; }
 
-    #leftColumn .container {
-        flex: 1;
-        overflow-y: auto;
-    }
+    /* Nasconde bottoni duplicati in topbar */
+    #editBtn, #aiSettingsBtn { display: none; }
 
-    #leftColumn .footer {
-        flex-shrink: 0;
-    }
-
-    /* Su desktop nasconde i bottoni "Modifica testo" e "🤖" dalla topbar
-       perché sono sempre visibili nella colonna destra */
-    #editBtn,
-    #aiSettingsBtn { display: none; }
-
-    /* ── Colonna destra ── */
+    /* Colonna destra */
     #rightColumn {
         flex: 1;
         display: flex !important;
@@ -1165,7 +1155,7 @@ body {
         min-width: 0;
     }
 
-    /* Tab bar colonna destra */
+    /* Tab bar */
     .rc-tabs {
         display: flex;
         background: #1d4ed8;
@@ -1190,72 +1180,51 @@ body {
         background: rgba(255,255,255,0.12);
     }
     .rc-tab:hover:not(.rc-active) {
+        color: rgba(255,255,255,0.9);
         background: rgba(255,255,255,0.08);
-        color: rgba(255,255,255,0.85);
     }
 
-    /* I pannelli editor e AI, dentro la colonna destra, non sono più fixed */
-    #editorPanel,
-    #aiPanel {
-        position: relative !important;
-        top: auto !important; left: auto !important;
-        right: auto !important; bottom: auto !important;
+    /* I pannelli vivono dentro rightColumn — niente fixed, niente z-index */
+    #rightColumn > #editorPanel,
+    #rightColumn > #aiPanel,
+    #rightColumn .editor-panel,
+    #rightColumn .ai-panel {
+        position: static !important;
+        inset: auto !important;
         z-index: auto !important;
         flex: 1;
-        display: flex;         /* sempre visibili, la scheda attiva non ha hidden */
+        display: flex !important;
         flex-direction: column;
         overflow: hidden;
         min-height: 0;
         border-radius: 0;
         box-shadow: none;
-        /* rimane hidden/visibile tramite .rc-hidden */
     }
 
-    /* Overlay inutili su desktop */
-    #editorOverlay,
-    #aiOverlay { display: none !important; }
-
-    /* Header dei pannelli dentro rightColumn: sfondo più scuro per distinguerli */
-    #editorPanel .editor-header {
-        background: #1e40af;
-    }
-    #aiPanel .ai-header {
-        background: #1e40af;
-    }
-
-    /* Il pulsante ✕ dei pannelli su desktop chiude la scheda (torna al placeholder) */
-    #closeEditorBtn,
-    #closeAiBtn { display: none; }   /* nessun "chiudi" — sempre aperti */
-
-    /* Pannello nascosto nella colonna destra */
-    .rc-hidden {
+    /* rc-hidden: nasconde la scheda non attiva */
+    #rightColumn .rc-hidden {
         display: none !important;
     }
 
-    /* Placeholder quando nessuna scheda è attiva (non usato, entrambe sempre visibili) */
-    #rcPlaceholder {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--muted);
-        font-size: 0.95rem;
-        padding: 32px;
-        text-align: center;
-    }
+    /* Gli overlay non servono su desktop */
+    #editorOverlay,
+    #aiOverlay { display: none !important; }
 
-    /* Risultato AI: max-height più generosa su desktop */
-    .ai-result-text { max-height: 320px; }
+    /* Header pannelli in colonna destra: blu più scuro */
+    #rightColumn .editor-header,
+    #rightColumn .ai-header   { background: #1e40af; }
 
-    /* Editor frasi: rimuove border-radius inutile */
-    .editor-panel { border-radius: 0; }
+    /* Bottoni chiudi pannello: non servono su desktop */
+    #rightColumn #closeEditorBtn,
+    #rightColumn #closeAiBtn { display: none; }
 
-    /* La topbar ☰ nasconde il pulsante capitoli su desktop (sidebar sempre usabile)
-       — lo lasciamo: può essere comodo per schermi stretti */
+    /* Textarea risultato AI più alta su desktop */
+    #rightColumn .ai-result-text { max-height: 320px; }
 }
 
-/* Mobile: rightColumn nascosto (viene svuotato dal JS) */
+/* ── Mobile < 900px ── */
 @media (max-width: 899px) {
-    #rightColumn  { display: none !important; }
+    /* Su mobile rightColumn è nascosto; i pannelli dentro diventano overlay fixed */
+    #rightColumn { display: none !important; }
     #contentSplit { display: contents; }
 }
