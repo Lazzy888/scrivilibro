@@ -224,233 +224,6 @@
     </div>
 </div>
 
-!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8" />
-    <title>ScriviLibro</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#2563eb" />
-    <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="ScriviLibro" />
-    <link rel="apple-touch-icon" href="assets/icon-192.png" />
-    <link rel="apple-touch-startup-image" href="assets/splash-1280x720.png" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-
-<!-- ══ TESTATA ══ -->
-<header class="topbar">
-    <button id="menuBtn" class="icon-btn" aria-label="Apri capitoli">☰</button>
-    <div class="app-title">
-        <img src="assets/icon-192.png" class="app-logo" alt="ScriviLibro" />
-        <span>ScriviLibro</span>
-    </div>
-    <div class="topbar-right">
-        <span id="statusDot" class="status-dot" title="Stato connessione"></span>
-        <button id="openBooksTopBtn" class="icon-btn" aria-label="I miei libri" title="I miei libri">📁</button>
-        <button id="aiSettingsBtn" class="icon-btn ai-hdr-btn" aria-label="Strumenti AI" title="Strumenti AI">🤖</button>
-        <button id="helpBtn" class="icon-btn help-btn" aria-label="Istruzioni">?</button>
-    </div>
-</header>
-
-<!-- ══ PANNELLO CAPITOLI ══ -->
-<div id="chaptersPanel" class="chapters-panel hidden">
-    <div class="chapters-header">
-        <h2>Capitoli</h2>
-        <button id="openBooksBtn" class="icon-btn" title="I miei libri" aria-label="I miei libri">📁</button>
-        <button id="closeChapters" class="icon-btn" aria-label="Chiudi">✕</button>
-    </div>
-    <ul id="chaptersList" class="chapters-list"></ul>
-    <button id="addChapterBtn" class="btn primary full">+ Nuovo capitolo</button>
-</div>
-
-<!-- ══ PANNELLO LIBRI ══ -->
-<div id="booksOverlay" class="overlay hidden"></div>
-<div id="booksPanel" class="books-panel hidden" role="dialog" aria-modal="true">
-    <div class="books-header">
-        <h2>📁 I miei libri</h2>
-        <button id="closeBooksBtn" class="icon-btn" aria-label="Chiudi">✕</button>
-    </div>
-    <div class="books-body">
-        <p class="books-hint">Salva una copia del libro corrente per riprendere il lavoro in futuro.</p>
-        <div class="books-save-row">
-            <input id="bookNameInput" class="book-name-input" placeholder="Nome del libro…" maxlength="60" />
-            <button id="bookSaveBtn" class="btn primary">💾 Salva</button>
-        </div>
-        <div id="booksList" class="books-list">
-            <!-- populated by JS -->
-        </div>
-    </div>
-</div>
-<div id="chaptersOverlay" class="overlay hidden"></div>
-
-<!-- ══ POPUP ISTRUZIONI ══ -->
-<div id="helpOverlay" class="overlay hidden"></div>
-<div id="helpModal" class="help-modal hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
-    <div class="help-header">
-        <img src="assets/icon-192.png" class="help-logo" alt="" />
-        <h2 id="helpTitle">Come usare ScriviLibro</h2>
-        <button id="closeHelp" class="icon-btn" aria-label="Chiudi istruzioni">✕</button>
-    </div>
-    <div class="help-body">
-
-        <section class="help-section">
-            <h3>📚 Capitoli</h3>
-            <p>Tocca <strong>☰</strong> in alto a sinistra per aprire il pannello dei capitoli.
-               Crea nuovi capitoli con il tasto blu in fondo, rinominali con ✏️ o eliminali con ✕.
-               Il capitolo attivo è evidenziato in blu. Cambiare o eliminare un capitolo
-               interrompe automaticamente qualsiasi registrazione in corso.</p>
-            <p>Il <strong>Titolo capitolo</strong> in cima alla pagina principale può essere
-               modificato direttamente: il nome si aggiorna in tempo reale anche nel pannello
-               dei capitoli e viene salvato automaticamente.</p>
-        </section>
-
-        <section class="help-section">
-            <h3>✍️ Scrivere</h3>
-            <p>Il campo <strong>Titolo capitolo</strong> in cima è modificabile direttamente.
-               Scrivi il testo nell'area grande: viene salvato automaticamente ad ogni modifica.</p>
-        </section>
-
-        <section class="help-section">
-            <h3>🎙️ Dettatura vocale</h3>
-            <p>Tocca <strong>Avvia registrazione</strong>: il microfono trascrive la tua voce
-               in italiano in tempo reale, aggiungendo ogni frase al testo già presente.
-               Il tasto diventa <span style="color:#dc2626;font-weight:700">rosso e pulsa</span>
-               mentre è attivo; il riquadro giallo mostra le parole ancora in fase di riconoscimento.</p>
-            <p>Tocca <strong>Stop registrazione</strong> per terminare. Il testo viene salvato.</p>
-            <p>⚠️ Richiede permesso microfono. Su Android usa <strong>Chrome</strong>;
-               su iPhone usa <strong>Safari</strong>. Richiede connessione internet.</p>
-        </section>
-
-        <section class="help-section">
-            <h3>📋 Copia testo &nbsp;|&nbsp; ✂️ Modifica testo</h3>
-            <p><strong>Copia testo</strong> — copia l'intero testo del capitolo corrente negli appunti.</p>
-            <p><strong>Modifica testo</strong> — pannello a schermo intero con il testo diviso in frasi.
-               Tocca le frasi da eliminare (diventano rosse con testo barrato), poi premi
-               <em>Elimina selezionate</em>. Usa <em>↩️ Annulla</em> per ripristinare (fino a 20 passi).</p>
-        </section>
-
-        <section class="help-section">
-            <h3>🤖 Strumenti AI — Configurazione</h3>
-
-            <p style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:8px 10px;margin:0 0 10px;font-size:0.88rem;">
-                ⚠️ <strong>Se usi una VPN, disattivala</strong> prima di usare gli strumenti AI.<br/>
-                Le VPN bloccano spesso le chiamate all'API Groq.
-            </p>
-
-            <p style="font-size:0.9rem;font-weight:700;color:#1d4ed8;margin:0 0 6px;">
-                Passo 1 — Crea un account Groq (gratuito)
-            </p>
-            <p>Vai su
-               <strong><a href="https://console.groq.com" target="_blank" rel="noopener"
-                  style="color:#2563eb">console.groq.com</a></strong>
-               e registrati (puoi usare il tuo account Google o GitHub).
-               Groq è gratuito: 14.400 richieste al giorno, risposta in ~1-2 secondi.
-            </p>
-
-            <p style="font-size:0.9rem;font-weight:700;color:#1d4ed8;margin:8px 0 6px;">
-                Passo 2 — Crea la chiave API
-            </p>
-            <ol style="font-size:0.88rem;line-height:1.8;margin:0 0 4px 18px;color:#374151">
-                <li>Accedi a <a href="https://console.groq.com/keys" target="_blank"
-                    rel="noopener" style="color:#2563eb">console.groq.com/keys</a></li>
-                <li>Clicca <strong>Create API Key</strong></li>
-                <li>Dai un nome (es. "ScriviLibro") e clicca <strong>Submit</strong></li>
-                <li>Copia la chiave mostrata — inizia con <code>gsk_…</code><br/>
-                    <em style="color:#dc2626">⚠️ Viene mostrata una sola volta!</em></li>
-            </ol>
-
-            <p style="font-size:0.9rem;font-weight:700;color:#1d4ed8;margin:8px 0 6px;">
-                Passo 3 — Inserisci la chiave in ScriviLibro
-            </p>
-            <ol style="font-size:0.88rem;line-height:1.8;margin:0 0 4px 18px;color:#374151">
-                <li>Tocca il bottone <strong>🤖</strong> in alto a destra</li>
-                <li>Incolla la chiave <code>gsk_…</code> nel campo apposito</li>
-                <li>Tocca <strong>Salva chiave</strong> — viene salvata solo su questo device</li>
-            </ol>
-
-            <p style="font-size:0.9rem;font-weight:700;color:#1d4ed8;margin:8px 0 6px;">
-                Utilizzo
-            </p>
-            <p style="font-size:0.88rem;color:#374151;line-height:1.5;margin:0 0 6px;">
-                Tocca <strong>🤖</strong> → scegli una categoria → scegli l'opzione →
-                attendi lo spinner di elaborazione (compare nella stessa schermata) →
-                l'AI mostra un'<strong>anteprima</strong> in basso nella pagina:
-                tocca <em>✓ Applica</em> per sostituire il testo nel capitolo,
-                o <em>✕ Annulla</em> per scartare senza modificare nulla.
-            </p>
-            <ul style="font-size:0.85rem;line-height:1.7;margin:4px 0 0 16px;color:#374151">
-                <li><strong>✍️ Riscrittura</strong> — grammatica, punteggiatura, ripetizioni</li>
-                <li><strong>🎭 Stile narrativo</strong> — emozionale, descrittivo, romanzo, saggio…</li>
-                <li><strong>📖 Espansione</strong> — dettagli, dialoghi, scene, contesto</li>
-                <li><strong>📝 Riassunto</strong> — sinossi, riorganizzazione, struttura</li>
-                <li><strong>🎨 Tono</strong> — formale, colloquiale, ironico, drammatico, poetico</li>
-                <li><strong>🔍 Coerenza</strong> — contraddizioni, trama, continuità personaggi</li>
-                <li><strong>🏷️ Titoli</strong> — capitolo, paragrafi, intero libro</li>
-                <li><strong>🔤 Semplificazione</strong> — più leggibile, pubblico più ampio</li>
-            </ul>
-
-            <p style="font-size:0.8rem;color:#6b7280;margin:10px 0 0;line-height:1.4;">
-                🔒 La chiave API è salvata solo sul tuo dispositivo e non viene mai
-                trasmessa a server diversi da <em>api.groq.com</em>.
-            </p>
-        </section>
-
-        <section class="help-section">
-            <h3>📁 I miei libri</h3>
-            <p>Gestisci più libri indipendenti. Puoi aprire il pannello <strong>I miei libri</strong>
-               in due modi:</p>
-            <ul style="font-size:0.88rem;line-height:1.8;margin:4px 0 0 16px;color:#374151">
-                <li>Tocca <strong>📁</strong> nella barra in alto a destra</li>
-                <li>Oppure tocca <strong>☰</strong> → poi <strong>📁</strong> nell'intestazione del pannello capitoli</li>
-            </ul>
-            <p style="margin-top:8px">Nel pannello:</p>
-            <ul style="font-size:0.88rem;line-height:1.8;margin:4px 0 0 16px;color:#374151">
-                <li><strong>💾 Salva</strong> — digita un nome e salva una copia del libro corrente
-                    (tutti i capitoli e il loro contenuto)</li>
-                <li><strong>📂 Carica</strong> — sostituisce il libro corrente con quello salvato
-                    (dopo conferma)</li>
-                <li><strong>🗑</strong> — elimina la copia salvata (dopo conferma)</li>
-            </ul>
-            <p style="font-size:0.8rem;color:#6b7280;margin-top:6px">
-                ℹ️ I libri restano solo su questo dispositivo (localStorage).</p>
-        </section>
-
-        <section class="help-section">
-            <h3>💾 Salva</h3>
-            <p>Il testo è salvato automaticamente a ogni modifica. Il tasto <strong>Salva</strong>
-               nella pagina principale forza un salvataggio esplicito. I dati restano
-               <em>solo su questo dispositivo</em> (localStorage) e non escono mai dal telefono.</p>
-        </section>
-
-        <section class="help-section">
-            <h3>📤 Esporta</h3>
-            <p><strong>TXT</strong> — tutti i capitoli in un file di testo semplice.<br/>
-               <strong>DOCX</strong> — documento Word con titoli in grassetto, apribile in
-               Microsoft Word, LibreOffice e Google Docs.</p>
-        </section>
-
-        <section class="help-section">
-            <h3>🔵 Pallino di stato</h3>
-            <p><span style="color:#16a34a;font-weight:700">Verde</span> = online.
-               <span style="color:#9ca3af;font-weight:700">Grigio</span> = offline.
-               Scrittura e salvataggio funzionano anche offline; dettatura e AI richiedono connessione.</p>
-        </section>
-
-    </div>
-    <div class="help-footer">
-        <button id="closeHelpBtn" class="btn primary">Chiudi</button>
-    </div>
-</div>
-
-
 <!-- ══ SPLIT LAYOUT (mobile: colonna unica, desktop: sx+dx) ══ -->
 <div id="contentSplit">
 
@@ -499,167 +272,154 @@
 
 <!-- ── Colonna destra: Modifica testo + Strumenti AI (solo desktop) ── -->
 <div id="rightColumn" class="right-column">
+
+    <!-- Tab bar -->
     <div class="rc-tabs">
         <button id="rcTabEditor" class="rc-tab rc-active">✂️ Modifica testo</button>
         <button id="rcTabAi"     class="rc-tab">🤖 Strumenti AI</button>
     </div>
 
-    <!-- ══ PANNELLO EDITOR TESTO ══ -->
-    <div id="editorOverlay" class="overlay hidden"></div>
-    <div id="editorPanel" class="editor-panel" role="dialog" aria-modal="true">
-    
-        <!-- Header -->
-        <div class="editor-header">
-            <h2>✂️ Modifica testo</h2>
-            <div style="display:flex;align-items:center;gap:8px">
-                <span id="edWordCount" class="ed-wordcount"></span>
-                <button id="closeEditorBtn" class="icon-btn" aria-label="Chiudi">✕</button>
-            </div>
-        </div>
-    
-        <!-- Schede -->
-        <div class="ed-tabs" role="tablist">
-            <button class="ed-tab active" data-tab="sentences" role="tab">✂️ Frasi</button>
-            <button class="ed-tab"        data-tab="direct"    role="tab">📝 Testo</button>
-            <button class="ed-tab"        data-tab="search"    role="tab">🔍 Cerca</button>
-        </div>
-    
-        <!-- ── Scheda 1: Frasi ── -->
-        <div id="edTabSentences" class="ed-tab-pane">
-            <p class="editor-hint">Tocca per selezionare • ↑↓ sposta • ✏️ modifica singola frase</p>
-            <ul id="editorList" class="editor-list"></ul>
-            <div class="editor-actions">
-                <button id="editorUndoBtn"   class="btn secondary" disabled>↩️ Annulla</button>
-                <button id="editorDeleteBtn" class="btn danger"    disabled>🗑 Elimina</button>
-            </div>
-        </div>
-    
-        <!-- ── Scheda 2: Testo diretto ── -->
-        <div id="edTabDirect" class="ed-tab-pane hidden">
-            <div class="ed-direct-bar">
-                <span class="editor-hint" style="border:none;padding:0">Modifica il testo liberamente</span>
-            </div>
-            <textarea id="edDirectText" class="ed-direct-textarea"></textarea>
-            <div class="ed-direct-actions">
-                <button id="edDirectCancelBtn" class="btn secondary half">✕ Annulla</button>
-                <button id="edDirectApplyBtn"  class="btn primary   half">✓ Applica</button>
-            </div>
-        </div>
-    
-        <!-- ── Scheda 3: Cerca & Sostituisci ── -->
-        <div id="edTabSearch" class="ed-tab-pane hidden">
-            <div class="ed-search-form">
-                <label class="ed-search-label">Cerca</label>
-                <input id="edFindInput"    class="ed-search-input" type="text" placeholder="Parola o frase…" autocomplete="off" />
-                <label class="ed-search-label">Sostituisci con</label>
-                <input id="edReplaceInput" class="ed-search-input" type="text" placeholder="Nuovo testo (vuoto = elimina)" autocomplete="off" />
-                <div class="ed-search-row">
-                    <label class="ed-search-check">
-                        <input id="edCaseSensitive" type="checkbox" /> Maiusc./minusc.
-                    </label>
-                    <button id="edReplaceAllBtn" class="btn primary">Sostituisci tutto</button>
-                </div>
-            </div>
-            <div id="edSearchInfo" class="ed-search-info hidden"></div>
-            <div class="ed-search-preview-label hidden" id="edPreviewLabel">Anteprima modifiche:</div>
-            <div id="edSearchPreview" class="ed-search-preview hidden"></div>
-            <div class="ed-direct-actions" id="edReplaceActions" style="display:none">
-                <button id="edReplaceConfirmBtn" class="btn primary half">✓ Conferma</button>
-                <button id="edReplaceCancelBtn"  class="btn secondary half">✕ Annulla</button>
-            </div>
-        </div>
-    
-    </div>
+<!-- ══ PANNELLO EDITOR TESTO ══ -->
+<div id="editorOverlay" class="overlay hidden"></div>
+<div id="editorPanel" class="editor-panel" role="dialog" aria-modal="true">
 
-    <!-- ══ PANNELLO AI ══ -->
-    <div id="aiOverlay" class="overlay hidden"></div>
-    <div id="aiPanel" class="ai-panel rc-hidden" role="dialog" aria-modal="true">
-    
-        <!-- Header -->
-        <div class="ai-header">
-            <span class="ai-header-title">🤖 Strumenti AI</span>
-            <button id="closeAiBtn" class="icon-btn" aria-label="Chiudi">✕</button>
-        </div>
-    
-        <!-- Setup chiave API (mostrato se manca la chiave) -->
-        <div id="aiKeySetup" class="ai-key-setup hidden">
-            <p class="ai-key-intro">
-                Inserisci la tua chiave API <strong>Groq</strong> (gratuita).<br/>
-                Registrati su <strong>console.groq.com</strong> → API Keys → Create.
-            </p>
-            <input id="aiKeyInput" type="password" class="ai-key-input"
-                   placeholder="gsk_…" autocomplete="off" />
-            <button id="aiKeySaveBtn" class="btn primary">Salva chiave</button>
-        </div>
-    
-        <!-- Corpo principale (mostrato se la chiave c'è) -->
-        <div id="aiMain" class="ai-main hidden">
-    
-            <!-- Chiave API salvata + bottone cambia -->
-            <div class="ai-key-bar">
-                <span class="ai-key-label">🔑 Chiave Groq: <span id="aiKeyMask"></span></span>
-                <button id="aiKeyChangeBtn" class="btn-link">Cambia</button>
-            </div>
-    
-            <!-- Categorie -->
-            <div id="aiCategories" class="ai-categories">
-                <!-- generate dinamicamente da JS -->
-            </div>
-    
-            <!-- Sub-opzioni (appare dopo tap categoria) -->
-            <div id="aiSubPanel" class="ai-sub-panel hidden">
-                <p id="aiSubTitle" class="ai-sub-title"></p>
-                <div id="aiSubOptions" class="ai-sub-options"></div>
-            </div>
-    
-            <!-- Spinner elaborazione -->
-            <div id="aiSpinner" class="ai-spinner hidden">
-                <div class="spinner-ring"></div>
-                <p>Elaborazione in corso…</p>
-            </div>
-    
-            <!-- Messaggio errore AI (visibile dentro il pannello) -->
-            <div id="aiErrorBox" class="ai-error-box hidden">
-                <span id="aiErrorMsg"></span>
-                <button id="aiErrorCloseBtn" class="icon-btn" style="color:#991b1b;font-size:0.9rem" aria-label="Chiudi">✕</button>
-            </div>
-    
-            <!-- Anteprima risultato AI (dentro il pannello, sempre visibile) -->
-            <div id="aiPreviewSheet" class="ai-result-box hidden">
-                <div class="ai-result-header">
-                    <span class="ai-result-label">📄 Anteprima risultato</span>
-                    <button id="aiSheetCloseBtn" class="icon-btn" style="color:#15803d;font-size:1rem" aria-label="Chiudi anteprima">✕</button>
-                </div>
-                <textarea id="aiPreviewText" class="ai-result-text"></textarea>
-                <div class="ai-result-actions">
-                    <button id="aiCancelBtn" class="btn secondary half">✕ Annulla</button>
-                    <button id="aiApplyBtn"  class="btn primary   half">✓ Applica</button>
-                </div>
-            </div>
-    
+    <!-- Header -->
+    <div class="editor-header">
+        <h2>✂️ Modifica testo</h2>
+        <div style="display:flex;align-items:center;gap:8px">
+            <span id="edWordCount" class="ed-wordcount"></span>
+            <button id="closeEditorBtn" class="icon-btn" aria-label="Chiudi">✕</button>
         </div>
     </div>
 
+    <!-- Schede -->
+    <div class="ed-tabs" role="tablist">
+        <button class="ed-tab active" data-tab="sentences" role="tab">✂️ Frasi</button>
+        <button class="ed-tab"        data-tab="direct"    role="tab">📝 Testo</button>
+        <button class="ed-tab"        data-tab="search"    role="tab">🔍 Cerca</button>
     </div>
 
+    <!-- ── Scheda 1: Frasi ── -->
+    <div id="edTabSentences" class="ed-tab-pane">
+        <p class="editor-hint">Tocca per selezionare • ↑↓ sposta • ✏️ modifica singola frase</p>
+        <ul id="editorList" class="editor-list"></ul>
+        <div class="editor-actions">
+            <button id="editorUndoBtn"   class="btn secondary" disabled>↩️ Annulla</button>
+            <button id="editorDeleteBtn" class="btn danger"    disabled>🗑 Elimina</button>
+        </div>
+    </div>
 
-<script src="app.js"></script>
-<script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js')
-            .then(r => console.log('SW ok:', r.scope))
-            .catch(e => console.warn('SW:', e));
-    });
-}
-</script>
+    <!-- ── Scheda 2: Testo diretto ── -->
+    <div id="edTabDirect" class="ed-tab-pane hidden">
+        <div class="ed-direct-bar">
+            <span class="editor-hint" style="border:none;padding:0">Modifica il testo liberamente</span>
+        </div>
+        <textarea id="edDirectText" class="ed-direct-textarea"></textarea>
+        <div class="ed-direct-actions">
+            <button id="edDirectCancelBtn" class="btn secondary half">✕ Annulla</button>
+            <button id="edDirectApplyBtn"  class="btn primary   half">✓ Applica</button>
+        </div>
+    </div>
 
-</body>
-</html>
+    <!-- ── Scheda 3: Cerca & Sostituisci ── -->
+    <div id="edTabSearch" class="ed-tab-pane hidden">
+        <div class="ed-search-form">
+            <label class="ed-search-label">Cerca</label>
+            <input id="edFindInput"    class="ed-search-input" type="text" placeholder="Parola o frase…" autocomplete="off" />
+            <label class="ed-search-label">Sostituisci con</label>
+            <input id="edReplaceInput" class="ed-search-input" type="text" placeholder="Nuovo testo (vuoto = elimina)" autocomplete="off" />
+            <div class="ed-search-row">
+                <label class="ed-search-check">
+                    <input id="edCaseSensitive" type="checkbox" /> Maiusc./minusc.
+                </label>
+                <button id="edReplaceAllBtn" class="btn primary">Sostituisci tutto</button>
+            </div>
+        </div>
+        <div id="edSearchInfo" class="ed-search-info hidden"></div>
+        <div class="ed-search-preview-label hidden" id="edPreviewLabel">Anteprima modifiche:</div>
+        <div id="edSearchPreview" class="ed-search-preview hidden"></div>
+        <div class="ed-direct-actions" id="edReplaceActions" style="display:none">
+            <button id="edReplaceConfirmBtn" class="btn primary half">✓ Conferma</button>
+            <button id="edReplaceCancelBtn"  class="btn secondary half">✕ Annulla</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- ══ PANNELLO AI ══ -->
+<div id="aiOverlay" class="overlay hidden"></div>
+<div id="aiPanel" class="ai-panel rc-hidden" role="dialog" aria-modal="true">
+
+    <!-- Header -->
+    <div class="ai-header">
+        <span class="ai-header-title">🤖 Strumenti AI</span>
+        <button id="closeAiBtn" class="icon-btn" aria-label="Chiudi">✕</button>
+    </div>
+
+    <!-- Setup chiave API (mostrato se manca la chiave) -->
+    <div id="aiKeySetup" class="ai-key-setup hidden">
+        <p class="ai-key-intro">
+            Inserisci la tua chiave API <strong>Groq</strong> (gratuita).<br/>
+            Registrati su <strong>console.groq.com</strong> → API Keys → Create.
+        </p>
+        <input id="aiKeyInput" type="password" class="ai-key-input"
+               placeholder="gsk_…" autocomplete="off" />
+        <button id="aiKeySaveBtn" class="btn primary">Salva chiave</button>
+    </div>
+
+    <!-- Corpo principale (mostrato se la chiave c'è) -->
+    <div id="aiMain" class="ai-main hidden">
+
+        <!-- Chiave API salvata + bottone cambia -->
+        <div class="ai-key-bar">
+            <span class="ai-key-label">🔑 Chiave Groq: <span id="aiKeyMask"></span></span>
+            <button id="aiKeyChangeBtn" class="btn-link">Cambia</button>
+        </div>
+
+        <!-- Categorie -->
+        <div id="aiCategories" class="ai-categories">
+            <!-- generate dinamicamente da JS -->
+        </div>
+
+        <!-- Sub-opzioni (appare dopo tap categoria) -->
+        <div id="aiSubPanel" class="ai-sub-panel hidden">
+            <p id="aiSubTitle" class="ai-sub-title"></p>
+            <div id="aiSubOptions" class="ai-sub-options"></div>
+        </div>
+
+        <!-- Spinner elaborazione -->
+        <div id="aiSpinner" class="ai-spinner hidden">
+            <div class="spinner-ring"></div>
+            <p>Elaborazione in corso…</p>
+        </div>
+
+        <!-- Messaggio errore AI (visibile dentro il pannello) -->
+        <div id="aiErrorBox" class="ai-error-box hidden">
+            <span id="aiErrorMsg"></span>
+            <button id="aiErrorCloseBtn" class="icon-btn" style="color:#991b1b;font-size:0.9rem" aria-label="Chiudi">✕</button>
+        </div>
+
+        <!-- Anteprima risultato AI (dentro il pannello, sempre visibile) -->
+        <div id="aiPreviewSheet" class="ai-result-box hidden">
+            <div class="ai-result-header">
+                <span class="ai-result-label">📄 Anteprima risultato</span>
+                <button id="aiSheetCloseBtn" class="icon-btn" style="color:#15803d;font-size:1rem" aria-label="Chiudi anteprima">✕</button>
+            </div>
+            <textarea id="aiPreviewText" class="ai-result-text"></textarea>
+            <div class="ai-result-actions">
+                <button id="aiCancelBtn" class="btn secondary half">✕ Annulla</button>
+                <button id="aiApplyBtn"  class="btn primary   half">✓ Applica</button>
+            </div>
+        </div>
+
+    </div>
+</div>
 
 </div>
 
 </div><!-- /contentSplit -->
+
+
 
 <script src="app.js"></script>
 <script>

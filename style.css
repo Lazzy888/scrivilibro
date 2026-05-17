@@ -1119,81 +1119,50 @@ body {
    Colonna destra:   Modifica testo + Strumenti AI in-place
 ══════════════════════════════════════════════════════════════ */
 
-/* ── Desktop/Tablet ≥ 900px ── */
+/* ══ DESKTOP / TABLET ≥ 900px ══════════════════════════════════════════ */
 @media (min-width: 900px) {
 
-    #contentSplit {
-        display: flex;
-        flex: 1;
-        overflow: hidden;
-    }
+    #contentSplit { display: flex; flex: 1; overflow: hidden; }
 
     /* Colonna sinistra */
     #leftColumn {
-        display: flex;
-        flex-direction: column;
-        width: 46%;
-        min-width: 300px;
-        max-width: 560px;
+        display: flex; flex-direction: column;
+        width: 46%; min-width: 300px; max-width: 560px;
         border-right: 2px solid var(--border);
-        overflow: hidden;
-        flex-shrink: 0;
+        overflow: hidden; flex-shrink: 0;
     }
     #leftColumn .container { flex: 1; overflow-y: auto; }
     #leftColumn .footer    { flex-shrink: 0; }
 
-    /* Nasconde bottoni duplicati in topbar */
+    /* Nascondi bottoni duplicati nella topbar */
     #editBtn, #aiSettingsBtn { display: none; }
 
     /* Colonna destra */
     #rightColumn {
-        flex: 1;
-        display: flex !important;
-        flex-direction: column;
-        overflow: hidden;
-        background: var(--bg);
-        min-width: 0;
+        flex: 1; display: flex !important; flex-direction: column;
+        overflow: hidden; background: var(--bg); min-width: 0;
     }
 
-    /* Tab bar */
-    .rc-tabs {
-        display: flex;
-        background: #1d4ed8;
-        flex-shrink: 0;
-    }
+    /* Tab bar colonna destra */
+    .rc-tabs { display: flex; background: #1d4ed8; flex-shrink: 0; }
     .rc-tab {
-        flex: 1;
-        padding: 11px 8px;
-        font-size: 0.9rem;
-        font-weight: 700;
-        border: none;
-        background: transparent;
-        color: rgba(255,255,255,0.65);
-        cursor: pointer;
-        border-bottom: 3px solid transparent;
+        flex: 1; padding: 11px 8px; font-size: 0.9rem; font-weight: 700;
+        border: none; background: transparent; color: rgba(255,255,255,0.65);
+        cursor: pointer; border-bottom: 3px solid transparent;
         transition: color .15s, border-color .15s, background .15s;
         -webkit-tap-highlight-color: transparent;
     }
-    .rc-tab.rc-active {
-        color: #fff;
-        border-bottom-color: #fff;
-        background: rgba(255,255,255,0.12);
-    }
-    .rc-tab:hover:not(.rc-active) {
-        color: rgba(255,255,255,0.9);
-        background: rgba(255,255,255,0.08);
-    }
+    .rc-tab.rc-active  { color: #fff; border-bottom-color: #fff; background: rgba(255,255,255,0.12); }
+    .rc-tab:hover:not(.rc-active) { color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.08); }
 
-    /* I pannelli vivono dentro rightColumn — niente fixed, niente z-index */
-    #rightColumn > #editorPanel,
-    #rightColumn > #aiPanel,
-    #rightColumn .editor-panel,
-    #rightColumn .ai-panel {
+    /* Pannelli dentro rightColumn: statici, non fixed */
+    #rightColumn #editorPanel,
+    #rightColumn #aiPanel {
         position: static !important;
         inset: auto !important;
         z-index: auto !important;
         flex: 1;
-        display: flex !important;
+        display: flex;
         flex-direction: column;
         overflow: hidden;
         min-height: 0;
@@ -1201,30 +1170,54 @@ body {
         box-shadow: none;
     }
 
-    /* rc-hidden: nasconde la scheda non attiva */
-    #rightColumn .rc-hidden {
-        display: none !important;
-    }
+    /* Scheda non attiva */
+    #rightColumn #editorPanel.rc-hidden,
+    #rightColumn #aiPanel.rc-hidden    { display: none !important; }
 
     /* Gli overlay non servono su desktop */
-    #editorOverlay,
-    #aiOverlay { display: none !important; }
+    #editorOverlay, #aiOverlay { display: none !important; }
 
-    /* Header pannelli in colonna destra: blu più scuro */
+    /* Header pannelli: blu scuro */
     #rightColumn .editor-header,
-    #rightColumn .ai-header   { background: #1e40af; }
+    #rightColumn .ai-header { background: #1e40af; }
 
-    /* Bottoni chiudi pannello: non servono su desktop */
+    /* Pulsanti chiudi non servono su desktop */
     #rightColumn #closeEditorBtn,
     #rightColumn #closeAiBtn { display: none; }
 
-    /* Textarea risultato AI più alta su desktop */
+    /* Textarea risultato AI più alta */
     #rightColumn .ai-result-text { max-height: 320px; }
 }
 
-/* ── Mobile < 900px ── */
+/* ══ MOBILE < 900px ══════════════════════════════════════════════════════ */
 @media (max-width: 899px) {
-    /* Su mobile rightColumn è nascosto; i pannelli dentro diventano overlay fixed */
-    #rightColumn { display: none !important; }
+
     #contentSplit { display: contents; }
+
+    /* rightColumn: dimensione zero ma NON display:none
+       I pannelli dentro sono position:fixed → escono dal viewport */
+    #rightColumn {
+        width: 0; height: 0;
+        overflow: visible;
+        flex-shrink: 0;
+        pointer-events: none;
+    }
+
+    /* I pannelli diventano overlay full-screen su mobile */
+    #rightColumn #editorPanel,
+    #rightColumn #aiPanel {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 30 !important;
+        display: none;
+        pointer-events: auto;
+    }
+    /* Visibili quando .hidden è rimosso dal JS */
+    #rightColumn #editorPanel:not(.hidden),
+    #rightColumn #aiPanel:not(.hidden) {
+        display: flex !important;
+    }
+
+    /* Tab bar: nascosta su mobile */
+    .rc-tabs { display: none !important; }
 }

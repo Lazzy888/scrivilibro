@@ -1408,25 +1408,24 @@ bookSaveBtn.addEventListener("click",   saveBook);
 // ==============================
 // LAYOUT DESKTOP / MOBILE
 // ==============================
-// I pannelli #editorPanel e #aiPanel sono staticamente dentro #rightColumn nell'HTML.
-// Su desktop (>=900px) il CSS li mostra inline; su mobile sono nascosti via display:none
-// sul #rightColumn. Su mobile vengono usati come overlay fixed tramite JS.
+// editorPanel e aiPanel sono staticamente dentro #rightColumn nell'HTML.
+// Desktop: CSS li mostra inline (position:static).
+// Mobile:  CSS li mostra come position:fixed overlay (escono dal rightColumn=0x0).
 
-const rightColumn  = document.getElementById("rightColumn");
-const rcTabEditor  = document.getElementById("rcTabEditor");
-const rcTabAi      = document.getElementById("rcTabAi");
+const rightColumn = document.getElementById("rightColumn");
+const rcTabEditor = document.getElementById("rcTabEditor");
+const rcTabAi     = document.getElementById("rcTabAi");
 
 const desktopMQ = window.matchMedia("(min-width: 900px)");
 let isDesktop   = desktopMQ.matches;
 
-// ── Scheda colonna destra ──────────────────────────────
+// ── Scheda attiva ─────────────────────────────────
 function switchRcTab(tab) {
     if (tab === "editor") {
         editorPanel.classList.remove("rc-hidden");
         aiPanel.classList.add("rc-hidden");
         rcTabEditor.classList.add("rc-active");
         rcTabAi.classList.remove("rc-active");
-        // Aggiorna contenuto editor col capitolo corrente
         const ch = getCurrentChapter();
         if (ch) {
             renderSentencesTab(ch.content);
@@ -1442,14 +1441,15 @@ function switchRcTab(tab) {
     }
 }
 
-// ── Inizializzazione desktop ───────────────────────────
+// ── Inizializza pannelli desktop ──────────────────
 function initDesktopPanels() {
-    // editorPanel visibile, aiPanel nascosto (rc-hidden già in HTML)
-    editorPanel.classList.remove("rc-hidden");
+    // editorPanel visibile di default, aiPanel nascosto
+    editorPanel.classList.remove("rc-hidden", "hidden");
+    aiPanel.classList.add("rc-hidden");
+    aiPanel.classList.remove("hidden");
     rcTabEditor.classList.add("rc-active");
     rcTabAi.classList.remove("rc-active");
 
-    // Popola editor col capitolo corrente
     const ch = getCurrentChapter();
     if (ch) {
         renderSentencesTab(ch.content);
@@ -1459,38 +1459,31 @@ function initDesktopPanels() {
     resetSearchTab();
     switchEdTab("sentences");
 
-    // Inizializza pannello AI
     const key = getGroqKey();
     if (key) showAiMain(key);
-    else {
-        aiKeySetup.classList.remove("hidden");
-        aiMain.classList.add("hidden");
-    }
+    else { aiKeySetup.classList.remove("hidden"); aiMain.classList.add("hidden"); }
 }
 
-// ── Listener schede ────────────────────────────────────
+// ── Listener schede ───────────────────────────────
 rcTabEditor.addEventListener("click", () => { if (isDesktop) switchRcTab("editor"); });
 rcTabAi.addEventListener("click",     () => { if (isDesktop) switchRcTab("ai"); });
 
-// ── Cambio breakpoint ──────────────────────────────────
+// ── Cambio breakpoint ─────────────────────────────
 desktopMQ.addEventListener("change", e => {
     isDesktop = e.matches;
     if (isDesktop) {
-        // Passaggio a desktop: rimuovi classi mobile dai pannelli
+        // Da mobile a desktop: rimuovi .hidden (il CSS display:none su mobile lo gestiva)
         editorPanel.classList.remove("hidden");
         aiPanel.classList.remove("hidden");
         initDesktopPanels();
     } else {
-        // Passaggio a mobile: nascondi i pannelli (overlay gestiti da openEditor/openAiPanel)
+        // Da desktop a mobile: ripristina stato hidden per overlay mobile
         editorPanel.classList.add("hidden");
         aiPanel.classList.add("hidden");
         editorPanel.classList.remove("rc-hidden");
         aiPanel.classList.remove("rc-hidden");
     }
 });
-
-// Aggiorna i capitoli nella colonna destra quando si cambia capitolo
-const origSwitchChapter = switchChapter;
 
 // ==============================
 // INIT
@@ -1499,21 +1492,19 @@ const origSwitchChapter = switchChapter;
 function init() {
     loadFromStorage();
 
-    // Assicura che currentChapterId punti a un capitolo esistente
+    // Assicura sempre un capitolo esistente e selezionato
     if (chapters.length === 0) {
-        addChapter("Capitolo 1");
+        addChapter("Capitolo 1");   // crea e seleziona automaticamente
     } else {
         if (!chapters.find(c => c.id === currentChapterId)) {
             currentChapterId = chapters[0].id;
         }
         renderChaptersList();
-        renderCurrentChapter();
+        renderCurrentChapter();     // popola titolo + textarea sinistra
     }
 
-    // Inizializza pannelli colonna destra se siamo su desktop
-    if (isDesktop) {
-        initDesktopPanels();
-    }
+    // Inizializza pannelli desktop (capitoli già caricati sopra)
+    if (isDesktop) initDesktopPanels();
 
     // Dot online
     updateOnlineStatus();
