@@ -293,6 +293,12 @@
     </div>
 </div>
 
+<!-- ══ SPLIT LAYOUT (mobile: colonna unica, desktop: sx+dx) ══ -->
+<div id="contentSplit">
+
+<!-- ── Colonna sinistra: area di scrittura ── -->
+<div id="leftColumn">
+
 <!-- ══ MAIN ══ -->
 <main class="container">
 
@@ -330,6 +336,19 @@
 <footer class="footer">
     <span id="infoMessage"></span>
 </footer>
+
+</div><!-- /leftColumn -->
+
+<!-- ── Colonna destra: Modifica testo + Strumenti AI (solo desktop) ── -->
+<div id="rightColumn" class="right-column">
+    <div class="rc-tabs">
+        <button id="rcTabEditor" class="rc-tab rc-active">✂️ Modifica testo</button>
+        <button id="rcTabAi"     class="rc-tab">🤖 Strumenti AI</button>
+    </div>
+    <!-- #editorPanel e #aiPanel vengono spostati qui via JS su desktop -->
+</div>
+
+</div><!-- /contentSplit -->
 
 <!-- ══ PANNELLO EDITOR TESTO ══ -->
 <div id="editorOverlay" class="overlay hidden"></div>

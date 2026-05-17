@@ -204,6 +204,15 @@ function selectChapter(id) {
     renderChaptersList();
     renderCurrentChapter();
     closePanel();
+    // Se siamo su desktop, aggiorna l'editor nella colonna destra
+    if (isDesktop) {
+        const ch2 = getCurrentChapter();
+        if (ch2) {
+            renderSentencesTab(ch2.content);
+            edDirectText.value = ch2.content;
+            updateWordCount(ch2.content);
+        }
+    }
 }
 
 function updateCurrentChapterTitle(title) {
@@ -447,6 +456,7 @@ function openEditor() {
 
 // ── Chiudi editor ───────────────
 function closeEditorPanel() {
+    if (isDesktop) return; // Su desktop il pannello è sempre visibile
     editorPanel.classList.add("hidden");
     editorOverlay.classList.add("hidden");
 }
@@ -943,8 +953,10 @@ function openAiPanel() {
 }
 
 function closeAiPanel() {
-    aiPanel.classList.add("hidden");
-    aiOverlay.classList.add("hidden");
+    if (!isDesktop) {
+        aiPanel.classList.add("hidden");
+        aiOverlay.classList.add("hidden");
+    }
     aiSubPanel.classList.add("hidden");
     aiSpinner.classList.add("hidden");
     aiPreviewSheet.classList.add("hidden");
@@ -1111,7 +1123,7 @@ function applyAiResult() {
 
 // ── Event listeners AI ──
 
-aiSettingsBtn.addEventListener("click", openAiPanel);
+aiSettingsBtn.addEventListener("click", () => isDesktop ? switchRcTab("ai") : openAiPanel());
 closeAiBtn.addEventListener("click",    closeAiPanel);
 aiOverlay.addEventListener("click",     closeAiPanel);
 
@@ -1230,7 +1242,7 @@ recordBtn.addEventListener("click",      toggleRecording);
 exportTxtBtn.addEventListener("click",   exportAsTxt);
 exportDocxBtn.addEventListener("click",  exportAsDocx);
 clipboardBtn.addEventListener("click",   copyToClipboard);
-editBtn.addEventListener("click",        openEditor);
+editBtn.addEventListener("click",        () => isDesktop ? switchRcTab("editor") : openEditor());
 editorDeleteBtn.addEventListener("click", deleteSelected);
 editorUndoBtn.addEventListener("click",   undoEditor);
 closeEditorBtn.addEventListener("click",  closeEditorPanel);
@@ -1375,11 +1387,130 @@ booksOverlay.addEventListener("click",  closeBooksPanel);
 bookSaveBtn.addEventListener("click",   saveBook);
 
 // ==============================
+// LAYOUT DESKTOP / MOBILE
+// ==============================
+
+const rightColumn  = document.getElementById("rightColumn");
+const rcTabEditor  = document.getElementById("rcTabEditor");
+const rcTabAi      = document.getElementById("rcTabAi");
+
+let isDesktop = false;
+
+function applyDesktopLayout() {
+    // Sposta i pannelli nella colonna destra
+    rightColumn.appendChild(editorPanel);
+    rightColumn.appendChild(aiPanel);
+
+    // Mostra editor per default, nascondi AI
+    editorPanel.classList.remove("hidden", "rc-hidden");
+    aiPanel.classList.add("rc-hidden");
+    aiPanel.classList.remove("hidden");
+
+    // Apri subito l'editor col testo corrente
+    const ch = getCurrentChapter();
+    if (ch && ch.content.trim()) {
+        renderSentencesTab(ch.content);
+        edDirectText.value = ch.content;
+        updateWordCount(ch.content);
+    }
+    resetSearchTab();
+    switchEdTab("sentences");
+
+    rcTabEditor.classList.add("rc-active");
+    rcTabAi.classList.remove("rc-active");
+}
+
+function applyMobileLayout() {
+    // Rimanda i pannelli al body (prima del <script>)
+    const scriptTag = document.querySelector("script[src='app.js']");
+    document.body.insertBefore(editorPanel, scriptTag);
+    document.body.insertBefore(aiPanel, scriptTag);
+
+    // Ripristina come pannelli mobile (hidden)
+    editorPanel.classList.add("hidden");
+    aiPanel.classList.add("hidden");
+    editorPanel.classList.remove("rc-hidden");
+    aiPanel.classList.remove("rc-hidden");
+}
+
+function switchRcTab(tab) {
+    if (tab === "editor") {
+        editorPanel.classList.remove("rc-hidden");
+        aiPanel.classList.add("rc-hidden");
+        rcTabEditor.classList.add("rc-active");
+        rcTabAi.classList.remove("rc-active");
+
+        // Aggiorna il contenuto editor con il capitolo corrente
+        const ch = getCurrentChapter();
+        if (ch) {
+            renderSentencesTab(ch.content);
+            edDirectText.value = ch.content;
+            updateWordCount(ch.content);
+        }
+        switchEdTab(edCurrentTab);
+    } else {
+        aiPanel.classList.remove("rc-hidden");
+        editorPanel.classList.add("rc-hidden");
+        rcTabAi.classList.add("rc-active");
+        rcTabEditor.classList.remove("rc-active");
+    }
+}
+
+// Listener schede colonna destra
+rcTabEditor.addEventListener("click", () => switchRcTab("editor"));
+rcTabAi.addEventListener("click",     () => switchRcTab("ai"));
+
+// Quando l'utente apre l'editor su mobile, su desktop fa switch scheda
+const origOpenEditor = openEditor;
+// Override openEditor per desktop
+function openEditorOrSwitch() {
+    if (isDesktop) {
+        switchRcTab("editor");
+    } else {
+        origOpenEditor();
+    }
+}
+
+// Quando l'utente apre il pannello AI su mobile, su desktop fa switch scheda
+const origOpenAiPanel = openAiPanel;
+function openAiOrSwitch() {
+    if (isDesktop) {
+        switchRcTab("ai");
+    } else {
+        origOpenAiPanel();
+    }
+}
+
+// Rileva cambio viewport
+const desktopMQ = window.matchMedia("(min-width: 900px)");
+
+function handleBreakpoint(e) {
+    if (e.matches && !isDesktop) {
+        isDesktop = true;
+        applyDesktopLayout();
+    } else if (!e.matches && isDesktop) {
+        isDesktop = false;
+        applyMobileLayout();
+    }
+}
+
+desktopMQ.addEventListener("change", handleBreakpoint);
+
+// Aggiorna i capitoli nella colonna destra quando si cambia capitolo
+const origSwitchChapter = switchChapter;
+
+// ==============================
 // INIT
 // ==============================
 
 function init() {
     loadFromStorage();
+
+    // Attiva layout desktop se già in viewport largo
+    if (desktopMQ.matches) {
+        isDesktop = true;
+        applyDesktopLayout();
+    }
 
     // Assicura che currentChapterId punti a un capitolo esistente
     if (chapters.length === 0) {
