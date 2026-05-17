@@ -1,4 +1,4 @@
-const CACHE_NAME = "scrivilibro-cache-v1";
+const CACHE_NAME = "scrivilibro-cache-v2";
 
 const ASSETS = [
   "/",
