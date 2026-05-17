@@ -92,9 +92,18 @@ const aiPreviewText  = document.getElementById("aiPreviewText");
 const aiCancelBtn    = document.getElementById("aiCancelBtn");
 const aiApplyBtn     = document.getElementById("aiApplyBtn");
 const aiSheetCloseBtn = document.getElementById("aiSheetCloseBtn");
+const aiExpandBtn     = document.getElementById("aiExpandBtn");
 const aiErrorBox      = document.getElementById("aiErrorBox");
 const aiErrorMsg      = document.getElementById("aiErrorMsg");
 const aiErrorCloseBtn = document.getElementById("aiErrorCloseBtn");
+// Compare panel
+const comparePanel      = document.getElementById("comparePanel");
+const compareApplyBtn   = document.getElementById("compareApplyBtn");
+const compareCancelBtn  = document.getElementById("compareCancelBtn");
+const compareOriginal   = document.getElementById("compareOriginal");
+const compareResult     = document.getElementById("compareResult");
+// Nuovo libro
+const newBookBtn        = document.getElementById("newBookBtn");
 // Books panel
 const openBooksBtn    = document.getElementById("openBooksBtn");
 const openBooksTopBtn = document.getElementById("openBooksTopBtn"); // bottone topbar
@@ -1030,6 +1039,65 @@ function selectAiCategory(op, cardEl) {
     aiSubPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
+// ══ COMPARE PANEL (confronto desktop) ══════════════════
+
+function openComparePanel() {
+    const ch = getCurrentChapter();
+    if (!ch) return;
+    compareOriginal.value = ch.content;
+    compareResult.value   = aiPreviewText.value;
+    comparePanel.classList.remove("hidden");
+}
+
+function closeComparePanel() {
+    comparePanel.classList.add("hidden");
+}
+
+compareApplyBtn.addEventListener("click", () => {
+    const ch = getCurrentChapter();
+    if (!ch) return;
+    pushUndo(ch.content);
+    ch.content = compareResult.value;
+    chapterContentEl.value = ch.content;
+    saveToStorage();
+    if (isDesktop) {
+        renderSentencesTab(ch.content);
+        edDirectText.value = ch.content;
+        updateWordCount(ch.content);
+    }
+    aiPreviewSheet.classList.add("hidden");
+    closeAiPanel();
+    closeComparePanel();
+    setInfo("✅ Testo AI applicato.");
+});
+
+compareCancelBtn.addEventListener("click", () => {
+    closeComparePanel();
+});
+
+// ══ NUOVO LIBRO (reset completo) ════════════════════
+
+function newBook() {
+    if (!confirm("Sei sicuro? Tutti i capitoli e il testo verranno cancellati definitivamente.")) return;
+    // Svuota dati
+    chapters          = [];
+    currentChapterId  = null;
+    localStorage.removeItem("scrivilibro_chapters");
+    localStorage.removeItem("scrivilibro_current");
+    // Ricrea Capitolo 1
+    addChapter("Capitolo 1");
+    closePanel();
+    if (isDesktop) {
+        renderSentencesTab("");
+        edDirectText.value = "";
+        updateWordCount("");
+        resetSearchTab();
+    }
+    setInfo("✅ Nuovo libro creato.");
+}
+
+newBookBtn.addEventListener("click", newBook);
+
 // ── Helpers errore AI ──
 
 function showAiError(msg) {
@@ -1129,8 +1197,14 @@ function applyAiResult() {
     ch.content = aiPreviewText.value;
     chapterContentEl.value = ch.content;
     saveToStorage();
+    if (isDesktop) {
+        renderSentencesTab(ch.content);
+        edDirectText.value = ch.content;
+        updateWordCount(ch.content);
+    }
     aiPreviewSheet.classList.add("hidden");
     closeAiPanel();
+    closeComparePanel();
     setInfo("✅ Testo AI applicato al capitolo.");
 }
 
@@ -1169,7 +1243,10 @@ aiCancelBtn.addEventListener("click", () => {
 });
 aiSheetCloseBtn.addEventListener("click", () => {
     aiPreviewSheet.classList.add("hidden");
-    // rimane nel pannello AI per scegliere un'altra operazione
+});
+
+aiExpandBtn.addEventListener("click", () => {
+    openComparePanel();
 });
 
 // ==============================

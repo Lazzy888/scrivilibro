@@ -38,7 +38,8 @@
 <div id="chaptersPanel" class="chapters-panel hidden">
     <div class="chapters-header">
         <h2>Capitoli</h2>
-        <button id="openBooksBtn" class="icon-btn" title="I miei libri" aria-label="I miei libri">📁</button>
+        <button id="openBooksBtn"  class="icon-btn" title="I miei libri" aria-label="I miei libri">📁</button>
+        <button id="newBookBtn"    class="icon-btn" title="Nuovo libro (cancella tutto)" aria-label="Nuovo libro">🗑</button>
         <button id="closeChapters" class="icon-btn" aria-label="Chiudi">✕</button>
     </div>
     <ul id="chaptersList" class="chapters-list"></ul>
@@ -403,7 +404,10 @@
         <div id="aiPreviewSheet" class="ai-result-box hidden">
             <div class="ai-result-header">
                 <span class="ai-result-label">📄 Anteprima risultato</span>
-                <button id="aiSheetCloseBtn" class="icon-btn" style="color:#15803d;font-size:1rem" aria-label="Chiudi anteprima">✕</button>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <button id="aiExpandBtn" class="ai-result-expand-btn" title="Visualizza a tutta altezza affiancato all'originale">⛶ Espandi</button>
+                    <button id="aiSheetCloseBtn" class="icon-btn" style="color:#15803d;font-size:1rem" aria-label="Chiudi anteprima">✕</button>
+                </div>
             </div>
             <textarea id="aiPreviewText" class="ai-result-text"></textarea>
             <div class="ai-result-actions">
@@ -420,6 +424,28 @@
 </div><!-- /contentSplit -->
 
 
+
+<!-- ══ PANNELLO COMPARE AI (desktop: confronto testo originale vs risultato) ══ -->
+<div id="comparePanel" class="compare-panel hidden" role="dialog" aria-modal="true">
+    <div class="compare-header">
+        <span class="compare-title">📄 Confronto — originale vs risultato AI</span>
+        <div class="compare-actions">
+            <button id="compareCancelBtn" class="btn secondary">✕ Annulla</button>
+            <button id="compareApplyBtn"  class="btn primary">✓ Applica risultato</button>
+        </div>
+    </div>
+    <div class="compare-body">
+        <div class="compare-col">
+            <div class="compare-col-header">📖 Testo originale</div>
+            <textarea id="compareOriginal" class="compare-textarea" readonly></textarea>
+        </div>
+        <div class="compare-divider"></div>
+        <div class="compare-col">
+            <div class="compare-col-header">✨ Risultato AI <span class="compare-col-hint">(modificabile)</span></div>
+            <textarea id="compareResult" class="compare-textarea"></textarea>
+        </div>
+    </div>
+</div>
 
 <script src="app.js"></script>
 <script>
