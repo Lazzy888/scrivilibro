@@ -1,0 +1,34 @@
+# CHANGELOG — ScriviLibro
+
+Copyright (c) 2026 Lazzaro Serva - Centola
+Via Tasso, 28 – 84051 CENTOLA (SA) – Italia
+http://www.graficaesiti.it/
+
+Tutti i diritti riservati. Vedi file LICENSE.
+
+────────────────────────────────────────────────────────────────
+
+## [v23] — maggio 2026  ← versione corrente
+
+### Autore: Lazzaro Serva / Produzione Software
+### Data rilascio: maggio 2026
+
+#### Funzionalità principali
+- PWA completa per scrittura di libri via voce e testo
+- Dettatura vocale in italiano in tempo reale (Web Speech API)
+- Pannello capitoli con gestione completa (crea, rinomina, elimina, riordina)
+- Gestione multi-libro con salvataggio locale (localStorage)
+- Esportazione TXT e DOCX (compatibile Word / LibreOffice / Google Docs)
+- Strumenti AI integrati via Groq API (riscrittura, stile, tono, espansione…)
+- Editor testo avanzato: frasi selezionabili, testo diretto, cerca & sostituisci
+- Confronto affiancato originale vs risultato AI (desktop)
+- Layout responsive: colonna unica su mobile, split su desktop
+- Service Worker per funzionamento offline parziale
+- Installabile come app nativa (PWA manifest)
+
+────────────────────────────────────────────────────────────────
+
+## [versioni precedenti]
+  Sviluppo interno — documentazione riservata all'autore.
+
+────────────────────────────────────────────────────────────────

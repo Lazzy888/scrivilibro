@@ -1,3 +1,11 @@
+// ============================================================
+// ScriviLibro v23 — Produzione Software
+// Copyright (c) 2026 Lazzaro Serva - Centola
+// Via Tasso, 28 – 84051 CENTOLA (SA) – Italia
+// http://www.graficaesiti.it/
+// Tutti i diritti riservati – All rights reserved.
+// ============================================================
+
 const CACHE_NAME = "scrivilibro-cache-v2";
 
 const ASSETS = [
