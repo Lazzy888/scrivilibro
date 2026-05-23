@@ -13,7 +13,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8" />
-    <title>ScriviLibro</title>
+    <title>ScriviLibro PRO</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#2563eb" />
@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="ScriviLibro" />
+    <meta name="apple-mobile-web-app-title" content="ScriviLibro PRO" />
     <link rel="apple-touch-icon" href="assets/icon-192.png" />
     <link rel="apple-touch-startup-image" href="assets/splash-1280x720.png" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -34,8 +34,8 @@
 <header class="topbar">
     <button id="menuBtn" class="icon-btn" aria-label="Apri capitoli">☰</button>
     <div class="app-title">
-        <img src="assets/icon-192.png" class="app-logo" alt="ScriviLibro" />
-        <span>ScriviLibro</span>
+        <img src="assets/icon-192.png" class="app-logo" alt="ScriviLibro PRO" />
+        <span>ScriviLibro <span style="font-size:0.7em;font-weight:800;background:#7c3aed;color:#fff;padding:1px 7px;border-radius:20px;vertical-align:middle;margin-left:3px;">PRO</span></span>
     </div>
     <div class="topbar-right">
         <span id="statusDot" class="status-dot" title="Stato connessione"></span>
@@ -82,7 +82,7 @@
 <div id="helpModal" class="help-modal hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
     <div class="help-header">
         <img src="assets/icon-192.png" class="help-logo" alt="" />
-        <h2 id="helpTitle">Come usare ScriviLibro</h2>
+        <h2 id="helpTitle">Come usare ScriviLibro PRO</h2>
         <button id="closeHelp" class="icon-btn" aria-label="Chiudi istruzioni">✕</button>
     </div>
     <div class="help-body">
@@ -92,7 +92,7 @@
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
                 <img src="assets/icon-192.png" style="width:36px;height:36px;border-radius:8px;" alt="ScriviLibro"/>
                 <div>
-                    <div style="font-size:1.05rem;font-weight:700;color:#1e40af;">ScriviLibro <span style="font-size:0.85rem;font-weight:600;background:#2563eb;color:#fff;padding:2px 8px;border-radius:20px;margin-left:4px;">v23</span></div>
+                    <div style="font-size:1.05rem;font-weight:700;color:#1e40af;">ScriviLibro <span style="font-size:0.85rem;font-weight:600;background:#2563eb;color:#fff;padding:2px 8px;border-radius:20px;margin-left:4px;">v23</span> <span style="font-size:0.8rem;font-weight:800;background:#7c3aed;color:#fff;padding:2px 8px;border-radius:20px;margin-left:2px;">PRO</span></div>
                     <div style="font-size:0.78rem;color:#3b82f6;margin-top:2px;">Produzione Software — maggio 2026</div>
                 </div>
             </div>
@@ -255,7 +255,7 @@
         <div style="font-size:0.75rem;color:#6b7280;text-align:center;margin-bottom:8px;line-height:1.5;">
             © 2026 <strong>Lazzaro Serva</strong> – Via Tasso, 28 – CENTOLA (SA)<br/>
             <a href="http://www.graficaesiti.it/" target="_blank" rel="noopener" style="color:#3b82f6;">www.graficaesiti.it</a>
-            &nbsp;·&nbsp; ScriviLibro v23 &nbsp;·&nbsp; Tutti i diritti riservati
+            &nbsp;·&nbsp; ScriviLibro PRO v23 &nbsp;·&nbsp; Tutti i diritti riservati
         </div>
         <button id="closeHelpBtn" class="btn primary">Chiudi</button>
     </div>
@@ -318,7 +318,7 @@
 
 <!-- ══ PANNELLO EDITOR TESTO ══ -->
 <div id="editorOverlay" class="overlay hidden"></div>
-<div id="editorPanel" class="editor-panel" role="dialog" aria-modal="true">
+<div id="editorPanel" class="editor-panel hidden" role="dialog" aria-modal="true">
 
     <!-- Header -->
     <div class="editor-header">
@@ -385,7 +385,7 @@
 
 <!-- ══ PANNELLO AI ══ -->
 <div id="aiOverlay" class="overlay hidden"></div>
-<div id="aiPanel" class="ai-panel rc-hidden" role="dialog" aria-modal="true">
+<div id="aiPanel" class="ai-panel rc-hidden hidden" role="dialog" aria-modal="true">
 
     <!-- Header -->
     <div class="ai-header">

@@ -6,17 +6,17 @@
 // Tutti i diritti riservati – All rights reserved.
 // ============================================================
 
-const CACHE_NAME = "scrivilibro-cache-v2";
+const CACHE_NAME = "scrivilibro-cache-v3";
 
 const ASSETS = [
-  "/",
-  "/index.html",
-  "/style.css",
-  "/app.js",
-  "/manifest.json",
-  "/assets/icon-192.png",
-  "/assets/icon-512.png",
-  "/assets/splash-1280x720.png"
+  "./",
+  "./index.html",
+  "./style.css",
+  "./app.js",
+  "./manifest.json",
+  "./assets/icon-192.png",
+  "./assets/icon-512.png",
+  "./assets/splash-1280x720.png"
 ];
 
 self.addEventListener("install", (event) => {
